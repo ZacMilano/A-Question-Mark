@@ -1,5 +1,4 @@
-#A?
-
+# A?
 CSCI-B351 Final project for Jacob Adley, Zac Monroe, and Zunaeed Salahuddin
 
 Our goal is to make several AI implementations that classify handwritten
