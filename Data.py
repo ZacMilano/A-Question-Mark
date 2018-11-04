@@ -18,6 +18,13 @@ class Data:
         be used instead for training). The dataset is already split into
         training and test data, so we just have to call the appropriate data
         retrieval method later.
+
+    Download the data from this link, clicking on "The database in original
+    MNIST format":
+      https://www.westernsydney.edu.au/bens/home/reproducible_research/emnist
+
+    Extract the .zip file to wherever, and move all emnist-byclass-* files to
+    the relative directory data_directory.
     '''
     # MNIST/EMNIST data organizer
     emnist_data = MNIST(data_directory)
