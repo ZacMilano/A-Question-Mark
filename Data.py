@@ -26,8 +26,10 @@ class Data:
     Extract the .zip file to wherever, and move all emnist-byclass-* files to
     the relative directory data_directory.
     '''
+    self.data_directory = data_directory
+
     # MNIST/EMNIST data organizer
-    emnist_data = MNIST(data_directory)
+    emnist_data = MNIST(self.data_directory)
     # Use EMNIST data (instead of normal MNIST data)
     emnist_data.select_emnist('byclass')
 
@@ -39,12 +41,51 @@ class Data:
       self._images, self._labels = emnist_data.load_testing()
 
   def images(self):
-    '''Return the unlabeled image data'''
+    '''
+    Return the unlabeled image data.
+    Return type is List<List<Integer>>
+
+    Each List<Integer> inside the main list is a list of length 28*28=784,
+    where each integer in that list is in the range [0,256), representing an
+    activation value of a pixel in a 28*28px image of a character.
+    '''
     return self._images
 
   def labels(self):
-    '''Return the labels of the data'''
+    '''Return the labels of the data.
+    Return type is List<Integer> where each integer is in the range [0,62).'''
     return self._labels
+
+  def label_display(self, class_label):
+    '''
+    Return the actual character that was written.
+    Return type: String (or None, if no matching class is found)
+
+    Parameter:
+      self : The instance of Data itself
+      class_label : Integer in range [0,62)
+
+    Data.labels() returns a list of integers, in the range [0,62). [0,9] is
+    digits 0-9, [10,35] is A, B, ... , Z, and [36,61] is a, b, ... , z.
+
+    This method maps the class label to a string of length 1 that contains just
+    the desired label. Included with the dataset was a .txt file with a proper
+    mapping.
+
+    It's not necessary to have this as an instance method, but that's ok.
+    '''
+    with open(self.data_directory +
+              '/emnist-byclass-mapping.txt') as mapping_file:
+      # Each line is of this format:
+      # "{class #} {ASCII code mapping to character's name}"
+      for line in mapping_file:
+        label, cls = line.split(" ")
+        # Convert strings to integers
+        label = int(label)
+        cls = int(cls)
+        # Return ascii code of mapping
+        if class_label == label:
+          return chr(cls)
 
 if __name__ == "__main__":
   print("\nWhy are you running this file..?\n")
