@@ -9,21 +9,24 @@ def add_images(img1, img2):
 
     return res
 
+
 def map_avg_img(img, n):
     for i in range(0, len(img)):
         img[i] /= n
 
     return img
 
-def dot_imgs(img1, img2):
+
+def diff_imgs(img1, img2):
     res = 0
 
     for i in range(0, len(img1)):
-        res += img1[i] * img2[i]
+        res += abs(img1[i] - img2[i])
 
     return res
 
-class Similarity:
+
+class NearestNeighbor:
     class ImageTrainingTup:
         def __init__(self, label, image_sum, image_count):
             self.label = label
@@ -62,24 +65,39 @@ class Similarity:
 
         return res_dict
 
-    def guess_img(self, index, training_dictionary):
+    def guess_img(self, index, training_dictionary, print_bool=False):
         real_label = self.test_labels[index]
         real_img = self.test_images[index]
 
-        max_seen = (-1, -1)
+        min_seen = (-1, float("inf"))
         for label in training_dictionary:
-            dot_val = dot_imgs(training_dictionary[label], real_img)
-            if dot_val > max_seen[1]:
-                max_seen = (label, dot_val)
+            diff_val = diff_imgs(training_dictionary[label], real_img)
+            if diff_val < min_seen[1]:
+                min_seen = (label, diff_val)
 
-        print('real label: ' + str(real_label) + ', guessed label: ' + str(max_seen[0]))
-        return max_seen[0]
+        if print_bool:
+            print('real label: ' + str(real_label) + ', guessed label: ' + str(min_seen[0]))
+        return min_seen[0]
 
+    def guess_all(self):
+        t_d = s.average_training_images()
+        correct_ct = 0
+        total_ct = 0
+
+        for i in range(0, len(self.test_images)):
+            total_ct += 1
+            res_lbl = s.guess_img(i, t_d)
+
+            if res_lbl == self.test_labels[i]:
+                correct_ct += 1
+
+        print('Guessed ' + str(correct_ct) + ' correctly out of ' + str(len(self.test_images)) + ': ' + str(correct_ct / len(self.test_images)))
+        return correct_ct
 
 
 if __name__ == "__main__":
     d = Data()
-    s = Similarity(d, d)
+    t = Data(is_test_data=True)
+    s = NearestNeighbor(d, t)
     t_d = s.average_training_images()
-    for i in range(0, 10):
-        s.guess_img(i, t_d)
+    s.guess_all()  # result is about 40% accuracy
