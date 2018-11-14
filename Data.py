@@ -4,7 +4,9 @@ class Data:
   '''
   Wrapper class for containing EMNIST data.
   '''
-  def __init__(self, data_directory="../data_samples", is_test_data=False):
+  # TODO: Process official_test_data, i.e. subdivide training data
+  def __init__(self, data_directory="../data_samples", is_test_data=False,
+               official_test_data=False):
     '''
     Constructor for a Data instance.
 
@@ -18,6 +20,10 @@ class Data:
         be used instead for training). The dataset is already split into
         training and test data, so we just have to call the appropriate data
         retrieval method later.
+      official_test_data : Optional argument indicating whether or not this
+        instance of data should be used for publication of results; default is
+        false because we do not want to overfit to our already-separated test
+        data. We will thus instead subdivide our training data.
 
     Download the data from this link, clicking on "The database in original
     MNIST format":

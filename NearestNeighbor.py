@@ -1,4 +1,5 @@
 from Data import Data
+from time import time
 
 
 def add_images(img1, img2):
@@ -96,8 +97,12 @@ class NearestNeighbor:
 
 
 if __name__ == "__main__":
+    time_initial = time()
     d = Data()
     t = Data(is_test_data=True)
     s = NearestNeighbor(d, t)
     t_d = s.average_training_images()
     s.guess_all()  # result is about 40% accuracy
+    time_final = time()
+    print("-"*80 + "Took " + str(time_final - time_initial) +
+          " seconds" + "-"*80)
