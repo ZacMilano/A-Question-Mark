@@ -104,5 +104,5 @@ if __name__ == "__main__":
     t_d = s.average_training_images()
     s.guess_all()  # result is about 40% accuracy
     time_final = time()
-    print("-"*80 + "Took " + str(time_final - time_initial) +
-          " seconds" + "-"*80)
+    print("-"*80 + "\nTook " + str(time_final - time_initial) +
+          " seconds\n" + "-"*80)
