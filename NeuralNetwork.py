@@ -33,10 +33,10 @@ class NeuralNetwork:
     else:
       self.train, self.test = Data.train_and_pseudo_test()
 
-    self.train_labels = self.train.labels()
+    self.train_labels = [expected(label) for label in self.train.labels()]
     self.train_images = self.train.images()
 
-    self.test_labels = self.test.labels()
+    self.test_labels = [expected(label) for label in self.test.labels()]
     self.test_images = self.test.images()
 
     # Hyperparameters
@@ -44,10 +44,23 @@ class NeuralNetwork:
     self.hidden_layer_length = hidden_length
     self.learning_rate = learning_rate
 
+  def layer_lengths(self):
+    '''
+    Return the length of each of the layers of the NN in the form of a list.
+    [input layer, {...hidden layers...} , output layer]
+    '''
+    shapes = [len(self.train_images[0])]
+    for i in range(self.num_hidden_layers):
+      shapes.append(self.hidden_layer_length)
+    shapes.append(len(self.train_labels[0]))
+    return shapes
+
 
 if __name__ == "__main__":
   time_initial = time()
+
   n = NeuralNetwork()
+
   dt = time() - time_initial
   mins, secs = int(dt // 60), int(dt % 60)
   print("-"*80 +
