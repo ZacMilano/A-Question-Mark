@@ -24,7 +24,8 @@ def expected(n):
   return y
 
 class NeuralNetwork:
-  def __init__(self, data_directory='../data_samples', final_testing=False):
+  def __init__(self, data_directory='../data_samples', final_testing=False,
+               num_hidden=2, hidden_length=20, learning_rate=0.001):
     if final_testing:
       self.train = Data(data_directory=data_directory, is_test_data=False)
       self.test = Data(data_directory=data_directory, is_test_data=True)
@@ -36,6 +37,11 @@ class NeuralNetwork:
 
     self.test_labels = np.array(self.test.labels())
     self.test_images = np.array(self.test.images())
+
+    # Hyperparameters
+    self.num_hidden_layers = num_hidden
+    self.hidden_layer_length = hidden_length
+    self.learning_rate = learning_rate
 
 
 if __name__ == "__main__":
