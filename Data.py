@@ -1,12 +1,12 @@
 from mnist import MNIST
+from random import random
 
 class Data:
   '''
   Wrapper class for containing EMNIST data.
   '''
   # TODO: Process official_test_data, i.e. subdivide training data
-  def __init__(self, data_directory="../data_samples", is_test_data=False,
-               official_test_data=False):
+  def __init__(self, data_directory="../data_samples", is_test_data=False):
     '''
     Constructor for a Data instance.
 
@@ -92,6 +92,32 @@ class Data:
         # Return ascii code of mapping
         if class_label == label:
           return chr(cls)
+
+  def train_and_pseudo_test(data_directory="../data_samples", proportion=0.8):
+    '''
+    Return (Data, Data) tuple; first result is training data, second result is
+    pseudo-test data. This is so that we are only using official test data when
+    we are publishing our results. This is a static method of the class Data.
+    '''
+    train = Data(data_directory=data_directory)
+    # The data in this next one doesn't matter; it will be overwritten
+    test = Data(data_directory=data_directory)
+    train_labels, train_imgs = [], []
+    test_labels, test_imgs = [], []
+
+    # Randomly split up the training data into training and testing data
+    for label, img in zip(train.labels(), train.images()):
+      if random() > proportion:
+        test_labels.append(label)
+        test_imgs.append(img)
+      else:
+        train_labels.append(label)
+        train_imgs.append(img)
+
+    train._labels, train._images = train_labels, train_imgs
+    test._labels, test._images = test_labels, test_imgs
+
+    return (train, test)
 
 if __name__ == "__main__":
   print("\nWhy are you running this file..?\n")
