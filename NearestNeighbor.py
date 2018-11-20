@@ -50,19 +50,25 @@ class NearestNeighbor:
 
         for label in self.training_labels:
             null_img = [0]*(self.IMG_WIDTH * self.IMG_HEIGHT)
-            training_image_dict[label] = self.ImageTrainingTup(label, null_img, 0)
+            training_image_dict[label] = self.ImageTrainingTup(label,
+                                                               null_img,
+                                                               0)
 
         for i in range(0, len(self.training_images)):
             cur_img = self.training_images[i]
             cur_label = self.training_labels[i]
             prev_img_tup = training_image_dict[cur_label]
             sum_imgs = add_images(prev_img_tup.image_sum, cur_img)
-            training_image_dict[prev_img_tup.label] = self.ImageTrainingTup(prev_img_tup.label, sum_imgs, prev_img_tup.image_count + 1)
+            training_image_dict[prev_img_tup.label] =\
+                self.ImageTrainingTup(prev_img_tup.label,
+                                      sum_imgs,
+                                      prev_img_tup.image_count + 1)
 
         res_dict = {}
         for label in training_image_dict:
             img_tup = training_image_dict[label]
-            res_dict[img_tup.label] = map_avg_img(img_tup.image_sum, img_tup.image_count)
+            res_dict[img_tup.label] = map_avg_img(img_tup.image_sum,
+                                                  img_tup.image_count)
 
         return res_dict
 
@@ -77,7 +83,8 @@ class NearestNeighbor:
                 min_seen = (label, diff_val)
 
         if print_bool:
-            print('real label: ' + str(real_label) + ', guessed label: ' + str(min_seen[0]))
+            print('real label: ' + str(real_label) +
+                  ', guessed label: ' + str(min_seen[0]))
         return min_seen[0]
 
     def guess_all(self):
@@ -92,7 +99,9 @@ class NearestNeighbor:
             if res_lbl == self.test_labels[i]:
                 correct_ct += 1
 
-        print('Guessed ' + str(correct_ct) + ' correctly out of ' + str(len(self.test_images)) + ': ' + str(correct_ct / len(self.test_images)))
+        print('Guessed ' + str(correct_ct) + ' correctly out of ' +
+              str(len(self.test_images)) + ': ' +
+              str(correct_ct / len(self.test_images)))
         return correct_ct
 
 
@@ -106,4 +115,6 @@ if __name__ == "__main__":
     s.guess_all()  # result is about 40% accuracy
     dt = time() - time_initial
     mins, secs = int(dt // 60), int(dt % 60)
-    print("-"*80 + "\nCompleted in {:0>2d}:{:0>2d}\n".format(mins, secs) + "-"*80)
+    print("-"*80 +
+          "\nCompleted in {:0>2d}:{:0>2d}\n".format(mins, secs) +
+          "-"*80)
