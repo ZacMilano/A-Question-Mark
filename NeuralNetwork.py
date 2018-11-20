@@ -18,6 +18,7 @@ def sigmoid(x, derivative=False):
 def expected(n):
   '''
   Return list of length 62, where the n-th value is 1 and rest is 0.
+  n is the expected class label of an image.
   '''
   y = [0] * 62
   y[n] = 1
@@ -32,11 +33,11 @@ class NeuralNetwork:
     else:
       self.train, self.test = Data.train_and_pseudo_test()
 
-    self.train_labels = np.array(self.train.labels())
-    self.train_images = np.array(self.train.images())
+    self.train_labels = self.train.labels()
+    self.train_images = self.train.images()
 
-    self.test_labels = np.array(self.test.labels())
-    self.test_images = np.array(self.test.images())
+    self.test_labels = self.test.labels()
+    self.test_images = self.test.images()
 
     # Hyperparameters
     self.num_hidden_layers = num_hidden
