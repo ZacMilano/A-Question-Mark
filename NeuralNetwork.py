@@ -44,13 +44,18 @@ class NeuralNetwork:
     self.hidden_layer_length = hidden_length
     self.learning_rate = learning_rate
 
-    self.create_weight_matrices()
+    self.create_weights_and_biases()
 
-  def create_weight_matrices(self):
+  def create_weights_and_biases(self):
+    '''
+    Create weight matrices and bias vectors for transition from layer to layer.
+    '''
     self.weight_matrices = []
+    self.biases = []
     lengths = self.layer_lengths()
     for n in range(len(lengths) - 1):
       self.weight_matrices.append(np.random.rand(lengths[n+1], lengths[n]))
+      self.biases.append(np.random.rand(lengths[n+1]))
 
   def layer_lengths(self):
     '''
