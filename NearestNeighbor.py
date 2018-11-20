@@ -98,8 +98,9 @@ class NearestNeighbor:
 
 if __name__ == "__main__":
     time_initial = time()
-    d = Data()
-    t = Data(is_test_data=True)
+    # d = Data()
+    # t = Data(is_test_data=True)
+    d, t = Data.train_and_pseudo_test()
     s = NearestNeighbor(d, t)
     t_d = s.average_training_images()
     s.guess_all()  # result is about 40% accuracy
