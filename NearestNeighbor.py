@@ -104,6 +104,6 @@ if __name__ == "__main__":
     s = NearestNeighbor(d, t)
     t_d = s.average_training_images()
     s.guess_all()  # result is about 40% accuracy
-    time_final = time()
-    print("-"*80 + "\nTook " + str(time_final - time_initial) +
-          " seconds\n" + "-"*80)
+    dt = time() - time_initial
+    mins, secs = int(dt // 60), int(dt % 60)
+    print("-"*80 + "\nCompleted in {:0>2d}:{:0>2d}\n".format(mins, secs) + "-"*80)
