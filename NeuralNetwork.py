@@ -44,6 +44,14 @@ class NeuralNetwork:
     self.hidden_layer_length = hidden_length
     self.learning_rate = learning_rate
 
+    self.create_weight_matrices()
+
+  def create_weight_matrices(self):
+    self.weight_matrices = []
+    lengths = self.layer_lengths()
+    for n in range(len(lengths) - 1):
+      self.weight_matrices.append(np.random.rand(lengths[n+1], lengths[n]))
+
   def layer_lengths(self):
     '''
     Return the length of each of the layers of the NN in the form of a list.
