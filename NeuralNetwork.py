@@ -25,8 +25,7 @@ def expected(n):
   return y
 
 class NeuralNetwork:
-  def __init__(self, data_directory='../data_samples', final_testing=False,
-               num_hidden=2, hidden_length=20, learning_rate=0.001):
+  def __init__(self, data_directory='../data_samples', final_testing=False):
     if final_testing:
       self.train = Data(data_directory=data_directory, is_test_data=False)
       self.test = Data(data_directory=data_directory, is_test_data=True)
@@ -40,13 +39,17 @@ class NeuralNetwork:
     self.test_images = self.test.images()
 
     # Hyperparameters
-    self.num_hidden_layers = num_hidden
-    self.hidden_layer_length = hidden_length
-    self.learning_rate = learning_rate
+    self.input_size = 28*28
+    self.hidden_size = 20
+    self.output_size = 62
+    self.num_hidden_layers = 2
+    self.learning_rate = 0.001
+    self.batch_size = 500
+    self.epochs = 1
 
-    self.create_weights_and_biases()
+    self._create_weights_and_biases()
 
-  def create_weights_and_biases(self):
+  def _create_weights_and_biases(self):
     '''
     Create weight matrices and bias vectors for transition from layer to layer.
     '''
@@ -62,10 +65,10 @@ class NeuralNetwork:
     Return the length of each of the layers of the NN in the form of a list.
     [input layer, {...hidden layers...} , output layer]
     '''
-    shapes = [len(self.train_images[0])]
+    shapes = [self.input_size]
     for i in range(self.num_hidden_layers):
-      shapes.append(self.hidden_layer_length)
-    shapes.append(len(self.train_labels[0]))
+      shapes.append(self.hidden_size)
+    shapes.append(self.output_size)
     return shapes
 
 
