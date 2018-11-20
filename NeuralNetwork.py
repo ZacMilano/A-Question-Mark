@@ -71,6 +71,12 @@ class NeuralNetwork:
     shapes.append(self.output_size)
     return shapes
 
+  def gradient_descent(self):
+    '''
+    Implement gradient descent algorithm to minimize error.
+    '''
+    pass
+
 
 if __name__ == "__main__":
   time_initial = time()
