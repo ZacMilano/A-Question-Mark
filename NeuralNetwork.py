@@ -1,5 +1,13 @@
+import AbeTF as tf
 from Data import *
+from math import exp
 from time import time
+
+def sigmoid(x, derivative=False):
+  if not derivative:
+    return 1 / (1  + exp(-x))
+  else:
+    return sigmoid(x, derivative=False) * (1 - sigmoid(x, derivative=False))
 
 class NeuralNetwork:
   def __init__(self):
