@@ -71,19 +71,32 @@ class NeuralNetwork:
     shapes.append(self.output_size)
     return shapes
 
+  def train_batch(self, batch_number):
+    '''
+    Perform a forward-propagation pass, training
+    '''
+    first_ind = self.batch_size * batch_number
+    last_ind = self.batch_size * (1 + batch_number)
+    for i in range(first_ind, last_ind):
+      if i > len(self.train_labels):
+        break
+      # Do da training boiiii
+    print('haha i am training, trust me comrade')
+
   def gradient_descent(self):
     '''
     Implement gradient descent algorithm to minimize error.
     '''
+    print("yeet")
     pass
 
 
 if __name__ == "__main__":
-  time_initial = time()
+  t0 = time()
 
   n = NeuralNetwork()
 
-  dt = time() - time_initial
+  dt = time() - t0
   mins, secs = int(dt // 60), int(dt % 60)
   print("-"*80 +
         "\nCompleted in {:0>2d}:{:0>2d}\n".format(mins, secs) +
