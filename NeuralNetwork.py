@@ -15,6 +15,14 @@ def sigmoid(x, derivative=False):
     s = sigmoid(x, derivative=False)
     return s * (1 - s)
 
+def expected(n):
+  '''
+  Return list of length 62, where the n-th value is 1 and rest is 0.
+  '''
+  y = [0] * 62
+  y[n] = 1
+  return y
+
 class NeuralNetwork:
   def __init__(self, data_directory='../data_samples', final_testing=False):
     if final_testing:
