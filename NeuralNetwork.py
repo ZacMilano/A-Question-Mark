@@ -10,10 +10,18 @@ def sigmoid(x, derivative=False):
   Takes in any real number, outputs a number between 0 and 1.
   '''
   if not derivative:
-    return 1 / (1  + exp(-x))
+    return 1 / (1  + np.exp(-x))
   else:
     s = sigmoid(x, derivative=False)
     return s * (1 - s)
+
+def softmax(inputs):
+  '''
+  Softmax activation function.
+  Takes in a list of numbers and outputs a new list of numbers with probability
+  values summing to 1.
+  '''
+  return np.exp(inputs)/float(sum(np.exp(inputs)))
 
 def expected(n):
   '''
@@ -32,6 +40,8 @@ class NeuralNetwork:
     else:
       self.train, self.test = Data.train_and_pseudo_test()
 
+    print('Data loaded.')
+
     self.train_labels = [expected(label) for label in self.train.labels()]
     self.train_images = self.train.images()
 
@@ -49,6 +59,11 @@ class NeuralNetwork:
 
     self._create_weights_and_biases()
 
+    print('Neural network created.')
+
+  def __call__(self):
+    pass
+
   def _create_weights_and_biases(self):
     '''
     Create weight matrices and bias vectors for transition from layer to layer.
@@ -59,6 +74,7 @@ class NeuralNetwork:
     for n in range(len(lengths) - 1):
       self.weight_matrices.append(np.random.rand(lengths[n+1], lengths[n]))
       self.biases.append(np.random.rand(lengths[n+1]))
+    print('Weight matrices and bias vectors initialized.')
 
   def layer_lengths(self):
     '''
@@ -78,7 +94,7 @@ class NeuralNetwork:
     first_ind = self.batch_size * batch_number
     last_ind = self.batch_size * (1 + batch_number)
     for i in range(first_ind, last_ind):
-      if i > len(self.train_labels):
+      if i >= len(self.train_labels):
         break
       # Do da training boiiii
     print('haha i am training, trust me comrade')
@@ -87,17 +103,20 @@ class NeuralNetwork:
     '''
     Implement gradient descent algorithm to minimize error.
     '''
-    print("yeet")
-    pass
+    # https://en.wikipedia.org/wiki/Backpropagation#Example_loss_function
+    # e = .5*|y - y_bar|^2
+    # e = (1/(2n))*sigma(from=0, to=n, ind=i, ||y_i - y_bar_i||^2)
+    print('yeet')
 
 
-if __name__ == "__main__":
+if __name__ == '__main__':
   t0 = time()
 
   n = NeuralNetwork()
+  n() # Equivalent to n.__call__()
 
   dt = time() - t0
   mins, secs = int(dt // 60), int(dt % 60)
-  print("-"*80 +
-        "\nCompleted in {:0>2d}:{:0>2d}\n".format(mins, secs) +
-        "-"*80)
+  print('-'*80 +
+        '\nCompleted in {:0>2d}:{:0>2d}\n'.format(mins, secs) +
+        '-'*80)
