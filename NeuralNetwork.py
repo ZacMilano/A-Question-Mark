@@ -15,7 +15,7 @@ def sigmoid(x, derivative=False):
     s = sigmoid(x, derivative=False)
     return s * (1 - s)
 
-def softmax(inputs):
+def softmax(inputs, derivative=False):
   '''
   Softmax activation function.
   Takes in a list of numbers and outputs a new list of numbers with probability
@@ -31,6 +31,12 @@ def expected(n):
   y = [0] * 62
   y[n] = 1
   return y
+
+def normalize(lst, norm_factor=256):
+  '''
+  Normalize the given list of numbers (or np.array) into a np.array.
+  '''
+  return np.array(lst)/norm_factor
 
 class NeuralNetwork:
   def __init__(self, data_directory='../data_samples', final_testing=False):
@@ -99,7 +105,7 @@ class NeuralNetwork:
       # Do da training boiiii
     print('haha i am training, trust me comrade')
 
-  def gradient_descent(self):
+  def backpropagation(self):
     '''
     Implement gradient descent algorithm to minimize error.
     '''
