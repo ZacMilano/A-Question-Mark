@@ -69,7 +69,7 @@ class NeuralNetwork:
     self.final_activation.
     '''
     last = len(self.weight_matrices) - 1
-    y = np.copy(x)
+    y = normalize(np.copy(x))
     for i, (W, b) in enumerate(zip(self.weight_matrices, self.bias_vectors)):
       z = np.dot(W, y) + b
       if i == last:
