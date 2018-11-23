@@ -30,8 +30,9 @@ class NeuralNetwork:
     self.batch_size = 500
     self.epochs = 1
 
-    self.hidden_activation = sigmoid
-    self.final_activation = softmax
+    # self.hidden_activation = sigmoid
+    # self.final_activation = softmax
+    self.activation = sigmoid
 
     self._create_weights_and_biases()
 
@@ -66,16 +67,17 @@ class NeuralNetwork:
     vector (np.array) x. len(x) = self.input_size.
 
     Output is np.array with size self.output_size, and has been pushed through
-    self.final_activation.
+    self.activation.
     '''
     last = len(self.weight_matrices) - 1
     y = normalize(np.copy(x))
     for i, (W, b) in enumerate(zip(self.weight_matrices, self.bias_vectors)):
       z = np.dot(W, y) + b
-      if i == last:
-        y = self.final_activation(z)
-      else:
-        y = self.hidden_activation(z)
+      y = self.activation(z)
+      # if i == last:
+      #   y = self.final_activation(z)
+      # else:
+      #   y = self.hidden_activation(z)
     return y
 
   def train(self):
@@ -108,23 +110,42 @@ class NeuralNetwork:
       labels.append(self.train_labels[i])
     print('haha we are training, trust me comrade')
 
-  def backpropagation(self, y_hat, target_label):
+  def backpropagation(self, input_image, y_hat, target_label):
     '''
-    Compute gradients for weight matrices and bias vectors
+    Compute gradients for weight matrices and bias vectors based on one
+    training example
+
+    NOTE: Scale final dW and dB values by -self.learning_rate
     '''
+    n = 1 + self.num_hidden_layers + 1 # input + num_hidden + output
     dW = [np.zeros(W.shape) for W in self.weight_matrices]
     dB = [np.zeros(b.shape) for b in self.bias_vectors]
-    # NOTE: Scale final dW and dB values by -self.learning_rate
-    # For each weight matrix and bias vector:
+    a = input_image
+    a_vals = [a] # Store neuron activation values
+    z_vals = [] # Store neuron values before passing thru activation function
+    # This does nearly the same thing as self.feed_forward, but it stores the
+    # a- and z-values
     for i, (W, b) in enumerate(zip(self.weight_matrices, self.bias_vectors)):
-      for j in len(W): # or len(b), doesn't matter
-        dB = 0
-        b[j] -= dB
-        for k in len(W[j]):
-          # Do the backpropagation
-          dW = 0
-          W[j,k] -= dW
-          pass
+      z_i = np.dot(W, a) + b
+      z_vals.append(z_i)
+      a = self.activation(z_i)
+      # if i == len(self.weight_matrices - 1):
+      #   a = self.final_activation(z_i)
+      # else:
+      #   a = self.hidden_activation(z_i)
+      a_vals.append(a)
+
+    dE_da = cross_entropy(y_hat, target_label, derivative=True)
+    da_dz = softmax(z_vals[-1], derivative=True)
+    for i in range(dW[-1].shape[0]):
+      for j in range(dW[-1].shape[1]):
+        target = 1 if j == target_label else 0
+        dW[-1][i,j] = a_vals[-2][i] * (a_vals[-1][j])
+    dB[-1] = dE_da * da_dz
+    for i in range(2, n):
+      z = z_vals[-i]
+
+
     print('yeet')
 
   def test(self):

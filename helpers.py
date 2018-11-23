@@ -1,5 +1,19 @@
 import numpy as np
 
+def mse(y_hat, desired_label, derivative=False):
+  '''
+  Return mean square error cost.
+  '''
+  y = expected(desired_label)
+  if not derivative:
+    e = 0
+
+    for y_i in y_hat:
+      e += (y_i - y) ** 2
+    return e/2
+  else:
+    return np.abs(y_hat - y)
+
 def sigmoid(x, derivative=False):
   '''
   Sigmoid activation function.
