@@ -139,13 +139,31 @@ class NeuralNetwork:
     shapes.append(self.output_size)
     return shapes
 
+  def feed_forward(self, x):
+    '''
+    Give output of neural network with current weights and biases if input is
+    vector (np.array) x. len(x) = self.input_size.
+
+    Output is np.array with size self.output_size, and has been pushed through
+    self.final_activation.
+    '''
+    last = len(self.weight_matrices) - 1
+    y = np.copy(x)
+    for i, (W, b) in enumerate(zip(self.weight_matrices, self.bias_vectors)):
+      z = np.dot(W, y) + b
+      if i == last:
+        y = self.final_activation(z)
+      else:
+        y = self.hidden_activation(z)
+    return y
+
   def train(self):
     '''
     Perform all the training batches, and make a graph or something.
     '''
     for iteration in range(np.ceil(len(self.train_labels) / self.batch_size)):
       self.train_batch(iteration)
-      if iteration % 100 in [0, np.ceil(len(self.train_labels) / self.batch_size)]:
+      if iteration%100 in [0, np.ceil(len(self.train_labels)/self.batch_size)]:
         # Add a point on a graph or something. This is after 50000 (100*500)
         # training examples! (or perhaps is just the last iteration)
         pass
@@ -169,7 +187,24 @@ class NeuralNetwork:
     # https://en.wikipedia.org/wiki/Backpropagation#Example_loss_function
     # Use cross-entropy as error measure
     E = cross_entropy(outputs, labels)
-    dE_da3 = lambda i: i
+    dEdY_hat = lambda i: cross_entropy(outputs, labels, derivative=True)[i]
+    dY_hat_dZ = None
+    dZdW = None
+    dZdB = None
+    self.learning_rate
+    last = len(self.weight_matrices) - 1
+    # For each weight matrix and bias vector:
+    for i, (W, b) in enumerate(zip(self.weight_matrices, self.bias_vectors)):
+      if i == last:
+        pass
+      for j in len(W): # or len(b), doesn't matter
+        dB = 0
+        b[j] -= dB
+        for k in len(W[j]):
+          # Do the backpropagation
+          dW = 0
+          W[j,k] -= dW
+          pass
     print('yeet')
 
 
