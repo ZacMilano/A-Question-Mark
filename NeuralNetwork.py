@@ -108,7 +108,7 @@ class NeuralNetwork:
       outputs = np.vstack([outputs, y_hat]) if outputs.shape!=(1,0) else y_hat
       labels.append(self.train_labels[i])
     # do something with self.backpropagation(outputs, labels)
-    print('haha i am training, trust me comrade')
+    print('haha we are training, trust me comrade')
 
   def backpropagation(self, outputs, labels):
     '''
