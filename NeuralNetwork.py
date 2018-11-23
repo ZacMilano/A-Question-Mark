@@ -6,20 +6,20 @@ from helpers import sigmoid, softmax, cross_entropy, normalize
 class NeuralNetwork:
   def __init__(self, data_directory='../data_samples', final_testing=False):
     if final_testing:
-      self.train = Data(data_directory=data_directory, is_test_data=False)
-      self.test = Data(data_directory=data_directory, is_test_data=True)
+      self.train_ = Data(data_directory=data_directory, is_test_data=False)
+      self.test_ = Data(data_directory=data_directory, is_test_data=True)
     else:
-      self.train, self.test = Data.train_and_pseudo_test()
+      self.train_, self.test_ = Data.train_and_pseudo_test()
 
     print('Data loaded.')
 
     # self.train_labels = [expected(label) for label in self.train.labels()]
-    self.train_labels = self.train.labels()
-    self.train_images = self.train.images()
+    self.train_labels = self.train_.labels()
+    self.train_images = self.train_.images()
 
     # self.test_labels = [expected(label) for label in self.test.labels()]
-    self.test_labels = self.test.labels()
-    self.test_images = self.test.images()
+    self.test_labels = self.test_.labels()
+    self.test_images = self.test_.images()
 
     # Hyperparameters
     self.input_size = 28*28
@@ -105,10 +105,22 @@ class NeuralNetwork:
       # is (1,0), so set the outputs to the only output so far. If outputs is
       # not empty anymore, add another row to the matrix, with that row being
       # the new output.
-      outputs = np.vstack([outputs, y_hat]) if outputs.shape!=(1,0) else y_hat
+      outputs = y_hat if outputs.shape==(1,0) else np.vstack([outputs, y_hat])
       labels.append(self.train_labels[i])
     # do something with self.backpropagation(outputs, labels)
     print('haha we are training, trust me comrade')
+
+  def test(self):
+    '''
+    Test how well the network currently performs on the test data. Return a
+    proportion of correct answers to test sample size.
+    '''
+    print('Testing...')
+    correct = 0
+    for label, image in zip(self.test_labels, self.test_images):
+      if np.argmax(self.feed_forward(image)) == label:
+        correct += 1
+    return correct/len(self.test_labels)
 
   def backpropagation(self, outputs, labels):
     '''
@@ -142,8 +154,7 @@ if __name__ == '__main__':
   t0 = time()
 
   n = NeuralNetwork()
-  print(n.train_labels[0])
-  print(np.argmax(n.feed_forward(n.train_images[0])))
+  print('Correctly guessed', n.test(), 'percent')
 
   dt = time() - t0
   mins, secs = int(dt // 60), int(dt % 60)
