@@ -84,10 +84,11 @@ class NeuralNetwork:
     '''
     for iteration in range(np.ceil(len(self.train_labels) / self.batch_size)):
       self.train_batch(iteration)
-      if iteration%100 in [0, np.ceil(len(self.train_labels)/self.batch_size)]:
+      if iteration % 100 == 0:
         # Add a point on a graph or something. This is after 50000 (100*500)
-        # training examples! (or perhaps is just the last iteration)
+        # training examples!
         pass
+    # Do the graphing (or something) thing here, after all the batches, as well
 
   def train_batch(self, batch_number):
     '''
@@ -129,11 +130,7 @@ class NeuralNetwork:
     # https://en.wikipedia.org/wiki/Backpropagation#Example_loss_function
     # Use cross-entropy as error measure
     E = cross_entropy(outputs, labels)
-    dEdY_hat = lambda i: cross_entropy(outputs, labels, derivative=True)[i]
-    dY_hat_dZ = None
-    dZdW = None
-    dZdB = None
-    self.learning_rate
+    # Use -self.learning_rate for final dW and dB values
     last = len(self.weight_matrices) - 1
     # For each weight matrix and bias vector:
     for i, (W, b) in enumerate(zip(self.weight_matrices, self.bias_vectors)):
