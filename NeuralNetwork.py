@@ -113,19 +113,16 @@ class NeuralNetwork:
 
     print('Neural network created.')
 
-  def __call__(self):
-    pass
-
   def _create_weights_and_biases(self):
     '''
     Create weight matrices and bias vectors for layer-to-layer transition.
     '''
     self.weight_matrices = []
-    self.biases = []
+    self.bias_vectors = []
     lengths = self.layer_lengths()
     for n in range(len(lengths) - 1):
       self.weight_matrices.append(np.random.rand(lengths[n+1], lengths[n]))
-      self.biases.append(np.random.rand(lengths[n+1]))
+      self.bias_vectors.append(np.random.rand(lengths[n+1]))
     print('Weight matrices and bias vectors initialized.')
 
   def layer_lengths(self):
@@ -212,7 +209,8 @@ if __name__ == '__main__':
   t0 = time()
 
   n = NeuralNetwork()
-  n() # Equivalent to n.__call__()
+  print(n.train_labels[0])
+  print(np.argmax(n.feed_forward(n.train_images[0])))
 
   dt = time() - t0
   mins, secs = int(dt // 60), int(dt % 60)
