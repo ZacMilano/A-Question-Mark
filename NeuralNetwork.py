@@ -96,8 +96,6 @@ class NeuralNetwork:
     '''
     first_ind = self.batch_size * batch_number
     last_ind = self.batch_size * (1 + batch_number)
-    outputs = np.array([])
-    labels = []
     for i in range(first_ind, last_ind):
       if i >= len(self.train_labels):
         break
@@ -108,8 +106,26 @@ class NeuralNetwork:
       # the new output.
       outputs = y_hat if outputs.shape==(1,0) else np.vstack([outputs, y_hat])
       labels.append(self.train_labels[i])
-    # do something with self.backpropagation(outputs, labels)
     print('haha we are training, trust me comrade')
+
+  def backpropagation(self, y_hat, target_label):
+    '''
+    Compute gradients for weight matrices and bias vectors
+    '''
+    dW = [np.zeros(W.shape) for W in self.weight_matrices]
+    dB = [np.zeros(b.shape) for b in self.bias_vectors]
+    # NOTE: Scale final dW and dB values by -self.learning_rate
+    # For each weight matrix and bias vector:
+    for i, (W, b) in enumerate(zip(self.weight_matrices, self.bias_vectors)):
+      for j in len(W): # or len(b), doesn't matter
+        dB = 0
+        b[j] -= dB
+        for k in len(W[j]):
+          # Do the backpropagation
+          dW = 0
+          W[j,k] -= dW
+          pass
+    print('yeet')
 
   def test(self):
     '''
@@ -122,29 +138,6 @@ class NeuralNetwork:
       if np.argmax(self.feed_forward(image)) == label:
         correct += 1
     return correct/len(self.test_labels)
-
-  def backpropagation(self, outputs, labels):
-    '''
-    Implement gradient descent algorithm to minimize error.
-    '''
-    # https://en.wikipedia.org/wiki/Backpropagation#Example_loss_function
-    # Use cross-entropy as error measure
-    E = cross_entropy(outputs, labels)
-    # Use -self.learning_rate for final dW and dB values
-    last = len(self.weight_matrices) - 1
-    # For each weight matrix and bias vector:
-    for i, (W, b) in enumerate(zip(self.weight_matrices, self.bias_vectors)):
-      if i == last:
-        pass
-      for j in len(W): # or len(b), doesn't matter
-        dB = 0
-        b[j] -= dB
-        for k in len(W[j]):
-          # Do the backpropagation
-          dW = 0
-          W[j,k] -= dW
-          pass
-    print('yeet')
 
 
 if __name__ == '__main__':

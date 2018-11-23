@@ -37,27 +37,31 @@ def softmax(inputs, derivative=False):
                            else (s[i] * (1 - s[j])))
     return np.array(jacobian)
 
-def cross_entropy(outputs, labels, epsilon=1e-9, derivative=False):
+def cross_entropy(y_hat, target_label, epsilon=1e-9, derivative=False):
   '''
   Compute the cross-entropy error on the output vs the labels (desired output).
 
-  outputs is a (batch_size, output_size)-shaped np.array, where each row has
-  been pushed through softmax() (at the end).
+  y_hat is a output_size-length np.array, where each row has been pushed through
+  softmax() (at the end).
 
-  labels is a sublist of labels for the inputs that caused outputs to be what
-  it is. It is a python list of shape (batch_size, 1).
+  target_label is an integer that entails the desired target class of the input
+  that caused the network to output y_hat.
   '''
   # l exists just because outputs is a 2D array, and we want to index through
   # all the examples while choosing a subset for the second dimension
-  l = len(labels)
   if not derivative:
-    lst_log_likelihood = -1*np.log(np.abs(outputs[range(l), labels] + epsilon))
-    total_loss = np.sum(lst_log_likelihood)/l
-    return total_loss
+    loss = 0
+    for i, y_i in enumerate(y_hat):
+      if i == target_label:
+        loss += -np.log(y_i)
+      else:
+        loss += -np.log(1 - y_i)
+    return loss
   else:
-    gradient = outputs.copy()
-    gradient[range(l), labels] -= 1 # Subtract one from those that count
-    return gradient/l # Normalize
+    grads = [0 if i != target_label
+             else -1/(y_hat[i] + epsilon)
+             for i in range(len(y_hat))]
+    return np.array(grads)
 
 def expected(n):
   '''
