@@ -95,10 +95,19 @@ class NeuralNetwork:
     '''
     first_ind = self.batch_size * batch_number
     last_ind = self.batch_size * (1 + batch_number)
+    outputs = np.array([])
+    labels = []
     for i in range(first_ind, last_ind):
       if i >= len(self.train_labels):
         break
-      # Do da training boiiii
+      y_hat = self.feed_forward(self.train_images[i])
+      # Ternary case for when outputs is empty. If outputs is empty, its shape
+      # is (1,0), so set the outputs to the only output so far. If outputs is
+      # not empty anymore, add another row to the matrix, with that row being
+      # the new output.
+      outputs = np.vstack([outputs, y_hat]) if outputs.shape!=(1,0) else y_hat
+      labels.append(self.train_labels[i])
+    # do something with self.backpropagation(outputs, labels)
     print('haha i am training, trust me comrade')
 
   def backpropagation(self, outputs, labels):
