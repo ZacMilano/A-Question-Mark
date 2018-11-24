@@ -56,7 +56,7 @@ class NeuralNetwork:
     [input layer, {...hidden layers...} , output layer]
     '''
     shapes = [self.input_size]
-    for i in range(self.num_hidden_layers):
+    for _ in range(self.num_hidden_layers):
       shapes.append(self.hidden_size)
     shapes.append(self.output_size)
     return shapes
@@ -71,19 +71,16 @@ class NeuralNetwork:
     '''
     last = len(self.weight_matrices) - 1
     y = normalize(np.copy(x))
-    for i, (W, b) in enumerate(zip(self.weight_matrices, self.bias_vectors)):
+    for W, b in zip(self.weight_matrices, self.bias_vectors):
       z = np.dot(W, y) + b
       y = self.activation(z)
-      # if i == last:
-      #   y = self.final_activation(z)
-      # else:
-      #   y = self.hidden_activation(z)
     return y
 
   def train(self):
     '''
     Perform all the training batches, and make a graph or something.
     '''
+    print('Beginning training...')
     performance = [] # Add self.test() values here every once in a while
     batches = int(np.ceil(len(self.train_labels) / self.batch_size))
 
@@ -127,7 +124,6 @@ class NeuralNetwork:
                             zip(self.weight_matrices, dE_dW)]
     self.bias_vectors = [b - (k * dB / n) for b, dB in
                          zip(self.bias_vectors, dE_dB)]
-    # print('haha we are training, trust me comrade')
 
   def backpropagation(self, input_image, target_label):
     '''
@@ -147,7 +143,7 @@ class NeuralNetwork:
     z_vals = [] # Store neuron values before passing thru activation function
     # This does nearly the same thing as self.feed_forward, but it stores the
     # a- and z-values in lists
-    for i, (W, b) in enumerate(zip(self.weight_matrices, self.bias_vectors)):
+    for W, b in zip(self.weight_matrices, self.bias_vectors):
       z_i = np.dot(W, a) + b
       z_vals.append(z_i)
       a = self.activation(z_i)
@@ -166,9 +162,9 @@ class NeuralNetwork:
       prev_ = -i - 1  # Layer that influences curr_
       curr_ = -i      # Current layer
 
-      z = z_vals[curr_]
+      z_i = z_vals[curr_]
       dE_dz = np.dot(np.transpose(self.weight_matrices[next_]), dE_dz) * \
-          self.activation(z_vals[curr_], derivative=True)
+          self.activation(z_i, derivative=True)
       # dE/dW
       dW[curr_] = np.dot(np.transpose(np.array([dE_dz])),
                          np.array([a_vals[prev_]]))
@@ -179,8 +175,9 @@ class NeuralNetwork:
 
   def test(self):
     '''
-    Test how well the network currently performs on the test data. Return a
-    proportion of correct answers to test sample size.
+    Test how well the network currently performs on the test data.
+
+    Return a proportion of correct answers to test sample size.
     '''
     print('Testing...')
     correct = 0
