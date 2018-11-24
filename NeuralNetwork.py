@@ -13,25 +13,21 @@ class NeuralNetwork:
 
     print('Data loaded.')
 
-    # self.train_labels = [expected(label) for label in self.train.labels()]
     self.train_labels = self.train_.labels()
     self.train_images = self.train_.images()
 
-    # self.test_labels = [expected(label) for label in self.test.labels()]
     self.test_labels = self.test_.labels()
     self.test_images = self.test_.images()
 
     # Hyperparameters
     self.input_size = 28*28
-    self.hidden_size = 20
+    self.hidden_size = 30
     self.output_size = 62
     self.num_hidden_layers = 2
-    self.learning_rate = 0.01
-    self.batch_size = 500
-    self.epochs = 1
+    self.learning_rate = 1.5
+    self.batch_size = 2500
+    self.epochs = 10
 
-    # self.hidden_activation = sigmoid
-    # self.final_activation = softmax
     self.activation = sigmoid
 
     self._create_weights_and_biases()
@@ -46,8 +42,9 @@ class NeuralNetwork:
     self.bias_vectors = []
     lengths = self.layer_lengths()
     for n in range(len(lengths) - 1):
-      self.weight_matrices.append(np.random.rand(lengths[n+1], lengths[n]))
-      self.bias_vectors.append(np.random.rand(lengths[n+1]))
+      # Random values between -1 and 1
+      self.weight_matrices.append(-1+2*np.random.rand(lengths[n+1], lengths[n]))
+      self.bias_vectors.append(-1+2*np.random.rand(lengths[n+1]))
     print('Weight matrices and bias vectors initialized.')
 
   def layer_lengths(self):
@@ -63,8 +60,8 @@ class NeuralNetwork:
 
   def feed_forward(self, x):
     '''
-    Give output of neural network with current weights and biases if input is
-    vector (np.array) x. len(x) = self.input_size.
+    Give output of neural network with current weights and biases if input is x.
+    len(x) = self.input_size.
 
     Output is np.array with size self.output_size, and has been pushed through
     self.activation.
@@ -81,22 +78,22 @@ class NeuralNetwork:
     Perform all the training batches, and make a graph or something.
     '''
     print('Beginning training...')
-    performance = [] # Add self.test() values here every once in a while
-    batches = int(np.ceil(len(self.train_labels) / self.batch_size))
+    for e in range(self.epochs):
+      print('Training epoch #{:2d}...'.format(e))
+      performance = [] # Add self.test() values here every once in a while
+      batches = int(np.ceil(len(self.train_labels) / self.batch_size))
 
-    for n_batch in range(batches):
-      self.train_batch(n_batch)
-      if n_batch % 100 == 0:
-        # Add a point on a graph or something. This is after 50000 (100*500)
-        # training examples!
-        t = self.test()
-        print('After batch #{0}, performance is {1:.2f}%.'.format(
-          n_batch, t*100))
-        performance.append(t)
-    # Do the graphing (or something) thing here, after all the batches, as well
+      for n_batch in range(batches):
+        self.train_batch(n_batch)
+        if n_batch % 100 == 0:
+          t = self.test()
+          print('After training {0:3d} batches, performance is {1:.2f}%.'\
+                .format(n_batch*(e+1), t*100))
+          performance.append(t)
     t = self.test()
+    print('Training complete. Final accuracy on test data is {0:.2f}%.'.format(
+      t*100))
     performance.append(t)
-    print('Final performance is {0:.2f}%.'.format(t*100))
 
   def train_batch(self, batch_number):
     '''
@@ -113,7 +110,7 @@ class NeuralNetwork:
         # Don't want an exception to be raised when training the last batch!
         break
       else: # In the clear
-        input_image  = self.train_images[i]
+        input_image  = normalize(self.train_images[i])
         target_label = self.train_labels[i]
         _dW, _dB = self.backpropagation(input_image, target_label)
         dE_dW = [dW + dW_ for dW, dW_ in zip(dE_dW, _dW)]
@@ -171,6 +168,7 @@ class NeuralNetwork:
       # dE/dB
       dB[curr_] = dE_dz # * 1
 
+    # print(dW[1], '\n', dB[1])
     return (dW, dB)
 
   def test(self):

@@ -12,7 +12,8 @@ def mse(y_hat, target_label, derivative=False):
       e += (y_i - y) ** 2
     return e/2
   else:
-    return np.abs(y_hat - y)
+    # return np.abs(y_hat - y)
+    return y_hat - y
 
 def sigmoid(x, derivative=False):
   '''
