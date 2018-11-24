@@ -26,7 +26,7 @@ class NeuralNetwork:
     self.hidden_size = 20
     self.output_size = 62
     self.num_hidden_layers = 2
-    self.learning_rate = 0.001
+    self.learning_rate = 0.01
     self.batch_size = 500
     self.epochs = 1
 
@@ -84,13 +84,22 @@ class NeuralNetwork:
     '''
     Perform all the training batches, and make a graph or something.
     '''
-    for iteration in range(np.ceil(len(self.train_labels) / self.batch_size)):
-      self.train_batch(iteration)
-      if iteration % 100 == 0:
+    performance = [] # Add self.test() values here every once in a while
+    batches = int(np.ceil(len(self.train_labels) / self.batch_size))
+
+    for n_batch in range(batches):
+      self.train_batch(n_batch)
+      if n_batch % 100 == 0:
         # Add a point on a graph or something. This is after 50000 (100*500)
         # training examples!
-        pass
+        t = self.test()
+        print('After batch #{0}, performance is {1:.2f}%.'.format(
+          n_batch, t*100))
+        performance.append(t)
     # Do the graphing (or something) thing here, after all the batches, as well
+    t = self.test()
+    performance.append(t)
+    print('Final performance is {0:.2f}%.'.format(t*100))
 
   def train_batch(self, batch_number):
     '''
@@ -129,8 +138,6 @@ class NeuralNetwork:
     bias vector, as a 2-tuple where the first value is a list of grad values
     for each weight matrix and the second value is a list of grad values for
     each bias vector.
-
-    NOTE: Scale final dW and dB values by -self.learning_rate
     '''
     n = 1 + self.num_hidden_layers + 1 # input + num_hidden + output
     dW = [np.zeros(W.shape) for W in self.weight_matrices]
@@ -148,9 +155,9 @@ class NeuralNetwork:
 
     # dE_da = cross_entropy(a_vals[-1], target_label, derivative=True)
     dE_da = mse(a_vals[-1], target_label, derivative=True)
-    da_dz = softmax(z_vals[-1], derivative=True)
+    da_dz = self.activation(z_vals[-1], derivative=True)
     dE_dz = dE_da * da_dz
-    dW[-1] = np.dot(dE_dz, np.transpose(a_vals[-2]))
+    dW[-1] = np.dot(np.transpose(np.array([dE_dz])), np.array([a_vals[-2]]))
     dB[-1] = dE_dz # * 1
 
     # Recursively & iteratively compute dE/dW and dE/dB
@@ -163,7 +170,8 @@ class NeuralNetwork:
       dE_dz = np.dot(np.transpose(self.weight_matrices[next_]), dE_dz) * \
           self.activation(z_vals[curr_], derivative=True)
       # dE/dW
-      dW[curr_] = np.dot(dE_dz, np.transpose(a_vals[prev_]))
+      dW[curr_] = np.dot(np.transpose(np.array([dE_dz])),
+                         np.array([a_vals[prev_]]))
       # dE/dB
       dB[curr_] = dE_dz # * 1
 
@@ -186,7 +194,7 @@ if __name__ == '__main__':
   t0 = time()
 
   n = NeuralNetwork()
-  print('Correctly guessed', n.test(), 'percent')
+  n.train()
 
   dt = time() - t0
   mins, secs = int(dt // 60), int(dt % 60)
