@@ -1,7 +1,7 @@
 import numpy as np
 from Data import *
 from time import time
-from helpers import sigmoid, mse, normalize
+from helpers import sigmoid, mse, normalize, relu, tanh
 
 class NeuralNetwork:
   def __init__(self, data_directory='../data_samples', final_testing=False):
@@ -9,7 +9,7 @@ class NeuralNetwork:
       self.train_ = Data(data_directory=data_directory, is_test_data=False)
       self.test_ = Data(data_directory=data_directory, is_test_data=True)
     else:
-      self.train_, self.test_ = Data.train_and_pseudo_test()
+      self.train_, self.test_ = Data.train_and_pseudo_test(proportion=0.9)
 
     print('Data loaded.')
 
@@ -21,14 +21,15 @@ class NeuralNetwork:
 
     # Hyperparameters
     self.input_size = 28*28
-    self.hidden_size = 30
+    self.hidden_size = 20
     self.output_size = 62
-    self.num_hidden_layers = 2
-    self.learning_rate = 1.5
-    self.batch_size = 2500
-    self.epochs = 10
+    self.num_hidden_layers = 1
+    self.learning_rate = .5
+    self.batch_size = 500
+    self.epochs = 5
 
-    self.activation = sigmoid
+    self.activation = tanh
+    self.cost = mse
 
     self._create_weights_and_biases()
 
@@ -40,14 +41,14 @@ class NeuralNetwork:
     '''
     self.weight_matrices = []
     self.bias_vectors = []
-    lengths = self.layer_lengths()
+    lengths = self._layer_lengths()
     for n in range(len(lengths) - 1):
       # Random values between -1 and 1
       self.weight_matrices.append(-1+2*np.random.rand(lengths[n+1], lengths[n]))
       self.bias_vectors.append(-1+2*np.random.rand(lengths[n+1]))
     print('Weight matrices and bias vectors initialized.')
 
-  def layer_lengths(self):
+  def _layer_lengths(self):
     '''
     Return the length of each of the layers of the NN in the form of a list.
     [input layer, {...hidden layers...} , output layer]
@@ -85,10 +86,10 @@ class NeuralNetwork:
 
       for n_batch in range(batches):
         self.train_batch(n_batch)
-        if n_batch % 100 == 0:
+        if n_batch % 500 == 0:
           t = self.test()
           print('After training {0:3d} batches, performance is {1:.2f}%.'\
-                .format(n_batch*(e+1), t*100))
+                .format(n_batch, t*100))
           performance.append(t)
     t = self.test()
     print('Training complete. Final accuracy on test data is {0:.2f}%.'.format(
@@ -147,7 +148,7 @@ class NeuralNetwork:
       a_vals.append(a)
 
     # dE_da = cross_entropy(a_vals[-1], target_label, derivative=True)
-    dE_da = mse(a_vals[-1], target_label, derivative=True)
+    dE_da = self.cost(a_vals[-1], target_label, derivative=True)
     da_dz = self.activation(z_vals[-1], derivative=True)
     dE_dz = dE_da * da_dz
     dW[-1] = np.dot(np.transpose(np.array([dE_dz])), np.array([a_vals[-2]]))

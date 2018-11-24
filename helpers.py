@@ -1,5 +1,20 @@
 import numpy as np
 
+def relu(x, derivative=False):
+  '''
+  ReLU activation function.
+  '''
+  if not derivative:
+    if isinstance(x, np.ndarray):
+      return np.array([x_ if x_ >= 0 else 0.2 * x_ for x_ in x])
+    else:
+      return x if x >= 0 else 0.2 * x
+  else:
+    if isinstance(x, np.ndarray):
+      return np.array([1 if x_ >= 0 else 0.2 for x_ in x])
+    else:
+      return 1 if x >= 0 else 0.2
+
 def mse(y_hat, target_label, derivative=False):
   '''
   Return mean square error cost.
@@ -14,6 +29,16 @@ def mse(y_hat, target_label, derivative=False):
   else:
     # return np.abs(y_hat - y)
     return y_hat - y
+
+def tanh(x, derivative=False):
+  '''
+  tanh activation function. Squishes R into (-1,1) range.
+  '''
+  if not derivative:
+    return 2 / (1  + np.exp(-2*x)) - 1
+  else:
+    t = tanh(x, derivative=False)
+    return 1 - t * t
 
 def sigmoid(x, derivative=False):
   '''
