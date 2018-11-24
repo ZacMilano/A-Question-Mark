@@ -113,7 +113,12 @@ class NeuralNetwork:
   def backpropagation(self, input_image, y_hat, target_label):
     '''
     Compute gradients for weight matrices and bias vectors based on one
-    training example
+    training example.
+
+    Return gradient of error function with respect to each weight matrix and
+    bias vector, as a 2-tuple where the first value is a list of grad values
+    for each weight matrix and the second value is a list of grad values for
+    each bias vector.
 
     NOTE: Scale final dW and dB values by -self.learning_rate
     '''
@@ -124,29 +129,34 @@ class NeuralNetwork:
     a_vals = [a] # Store neuron activation values
     z_vals = [] # Store neuron values before passing thru activation function
     # This does nearly the same thing as self.feed_forward, but it stores the
-    # a- and z-values
+    # a- and z-values in lists
     for i, (W, b) in enumerate(zip(self.weight_matrices, self.bias_vectors)):
       z_i = np.dot(W, a) + b
       z_vals.append(z_i)
       a = self.activation(z_i)
-      # if i == len(self.weight_matrices - 1):
-      #   a = self.final_activation(z_i)
-      # else:
-      #   a = self.hidden_activation(z_i)
       a_vals.append(a)
 
     dE_da = cross_entropy(y_hat, target_label, derivative=True)
     da_dz = softmax(z_vals[-1], derivative=True)
-    for i in range(dW[-1].shape[0]):
-      for j in range(dW[-1].shape[1]):
-        target = 1 if j == target_label else 0
-        dW[-1][i,j] = a_vals[-2][i] * (a_vals[-1][j])
-    dB[-1] = dE_da * da_dz
+    dE_dz = dE_da * da_dz
+    dW[-1] = np.dot(dE_dz, np.transpose(a_vals[-2]))
+    dB[-1] = dE_dz # * 1
+
+    # Recursively & iteratively compute dE/dW and dE/dB
     for i in range(2, n):
-      z = z_vals[-i]
+      next_ = -i + 1  # Layer that curr_ influences
+      prev_ = -i - 1  # Layer that influences curr_
+      curr_ = -i      # Current layer
 
+      z = z_vals[curr_]
+      dE_dz = np.dot(np.transpose(self.weight_matrices[next_]), dE_dz) * \
+          sigmoid(z_vals[curr_], derivative=True)
+      # dE/dW
+      dW[curr_] = np.dot(dE_dz, np.transpose(a_vals[prev_]))
+      # dE/dB
+      dB[curr_] = dE_dz # * 1
 
-    print('yeet')
+    return (dW, dB)
 
   def test(self):
     '''
