@@ -1,7 +1,7 @@
 import numpy as np
 from Data import *
 from time import time
-from helpers import sigmoid, softmax, cross_entropy, normalize
+from helpers import sigmoid, mse, normalize
 
 class NeuralNetwork:
   def __init__(self, data_directory='../data_samples', final_testing=False):
@@ -96,21 +96,31 @@ class NeuralNetwork:
     '''
     Perform a forward-propagation pass, training some stuff
     '''
-    first_ind = self.batch_size * batch_number
-    last_ind = self.batch_size * (1 + batch_number)
+    n = self.batch_size
+    k = self.learning_rate
+    first_ind = n * batch_number
+    last_ind = n * (batch_number + 1)
+    dE_dW = [np.zeros(W.shape) for W in self.weight_matrices]
+    dE_dB = [np.zeros(b.shape) for b in self.bias_vectors]
     for i in range(first_ind, last_ind):
       if i >= len(self.train_labels):
+        # Don't want an exception to be raised when training the last batch!
         break
-      y_hat = self.feed_forward(self.train_images[i])
-      # Ternary case for when outputs is empty. If outputs is empty, its shape
-      # is (1,0), so set the outputs to the only output so far. If outputs is
-      # not empty anymore, add another row to the matrix, with that row being
-      # the new output.
-      outputs = y_hat if outputs.shape==(1,0) else np.vstack([outputs, y_hat])
-      labels.append(self.train_labels[i])
-    print('haha we are training, trust me comrade')
+      else: # In the clear
+        input_image  = self.train_images[i]
+        target_label = self.train_labels[i]
+        _dW, _dB = self.backpropagation(input_image, target_label)
+        dE_dW = [dW + dW_ for dW, dW_ in zip(dE_dW, _dW)]
+        dE_dB = [dB + dB_ for dB, dB_ in zip(dE_dB, _dB)]
 
-  def backpropagation(self, input_image, y_hat, target_label):
+    # k is learning rate, n is for averaging
+    self.weight_matrices = [W - (k * dW / n) for W, dW in
+                            zip(self.weight_matrices, dE_dW)]
+    self.bias_vectors = [b - (k * dB / n) for b, dB in
+                         zip(self.bias_vectors, dE_dB)]
+    # print('haha we are training, trust me comrade')
+
+  def backpropagation(self, input_image, target_label):
     '''
     Compute gradients for weight matrices and bias vectors based on one
     training example.
@@ -136,7 +146,8 @@ class NeuralNetwork:
       a = self.activation(z_i)
       a_vals.append(a)
 
-    dE_da = cross_entropy(y_hat, target_label, derivative=True)
+    # dE_da = cross_entropy(a_vals[-1], target_label, derivative=True)
+    dE_da = mse(a_vals[-1], target_label, derivative=True)
     da_dz = softmax(z_vals[-1], derivative=True)
     dE_dz = dE_da * da_dz
     dW[-1] = np.dot(dE_dz, np.transpose(a_vals[-2]))
@@ -150,7 +161,7 @@ class NeuralNetwork:
 
       z = z_vals[curr_]
       dE_dz = np.dot(np.transpose(self.weight_matrices[next_]), dE_dz) * \
-          sigmoid(z_vals[curr_], derivative=True)
+          self.activation(z_vals[curr_], derivative=True)
       # dE/dW
       dW[curr_] = np.dot(dE_dz, np.transpose(a_vals[prev_]))
       # dE/dB

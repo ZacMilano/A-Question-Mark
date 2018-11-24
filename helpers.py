@@ -1,10 +1,10 @@
 import numpy as np
 
-def mse(y_hat, desired_label, derivative=False):
+def mse(y_hat, target_label, derivative=False):
   '''
   Return mean square error cost.
   '''
-  y = expected(desired_label)
+  y = expected(target_label)
   if not derivative:
     e = 0
 
