@@ -4,7 +4,8 @@ from time import time
 from helpers import sigmoid, mse, normalize, relu, tanh
 
 class NeuralNetwork:
-  def __init__(self, data_directory='../data_samples', final_testing=False):
+  def __init__(self, data_directory='../data_samples', final_testing=False,
+               load_from_directory=None):
     if final_testing:
       self.train_ = Data(data_directory=data_directory, is_test_data=False)
       self.test_ = Data(data_directory=data_directory, is_test_data=True)
@@ -36,7 +37,10 @@ class NeuralNetwork:
     self.activation = tanh
     self.cost = mse
 
-    self._create_weights_and_biases()
+    if load_from_directory is None:
+      self._create_weights_and_biases()
+    else:
+      self._load_model()
 
     print('Neural network created.')
 
@@ -52,6 +56,23 @@ class NeuralNetwork:
       self.weight_matrices.append(-1+2*np.random.rand(lengths[n+1], lengths[n]))
       self.bias_vectors.append(-1+2*np.random.rand(lengths[n+1]))
     print('Weight matrices and bias vectors initialized.')
+
+  def _load_model(self, load_from_directory):
+    '''
+    Load weight matrices and bias vectors from files in directory
+    load_from_directory.
+    '''
+    # Use np.genfromtxt('filename.csv', delimiter=',')
+    raise NotImplementedError
+
+  def save_model(self, save_to='../EMNIST_NN_model'):
+    '''
+    Save model's current state to files in save_to.
+
+    Save to directory outside of git repo.
+    '''
+    # Use np.savetxt('filename.csv', each_np_array, delimiter=',')
+    raise NotImplementedError
 
   def _layer_lengths(self):
     '''
@@ -201,6 +222,14 @@ if __name__ == '__main__':
 
   n = NeuralNetwork()
   n.train()
+
+  to_save = input('Would you like to save this model to directory' +
+                  '../EMNIST_NN_model/ ?')
+  y = ('y', 'yes', 'yea boi')
+  if to_save.lower()[:7] in y: # Allow for longer 'yea boiiiii's
+    n.save_model()
+  else:
+    print('Not saving model.')
 
   dt = time() - t0
   mins, secs = int(dt // 60), int(dt % 60)
