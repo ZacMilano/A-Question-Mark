@@ -23,10 +23,11 @@ class NeuralNetwork:
     self.input_size = 28*28
     self.hidden_size = 20
     self.output_size = 62
-    self.num_hidden_layers = 1
+    self.num_hidden_layers = 2
     self.learning_rate = .5
-    self.batch_size = 500
-    self.epochs = 5
+    self.batch_size = 200
+    self.epochs = 3
+    self.batches = int(np.ceil(len(self.train_labels) / self.batch_size))
 
     self.activation = tanh
     self.cost = mse
@@ -82,26 +83,25 @@ class NeuralNetwork:
     for e in range(self.epochs):
       print('Training epoch #{:2d}...'.format(e))
       performance = [] # Add self.test() values here every once in a while
-      batches = int(np.ceil(len(self.train_labels) / self.batch_size))
 
-      for n_batch in range(batches):
-        self.train_batch(n_batch)
+      for n_batch in range(self.batches):
+        self._train_batch(n_batch, e)
         if n_batch % 500 == 0:
           t = self.test()
-          print('After training {0:3d} batches, performance is {1:.2f}%.'\
-                .format(n_batch, t*100))
+          print('After training {0:5d} batches, performance is {1:.2f}%.'\
+                .format(n_batch + e*self.batches, t*100))
           performance.append(t)
     t = self.test()
     print('Training complete. Final accuracy on test data is {0:.2f}%.'.format(
       t*100))
     performance.append(t)
 
-  def train_batch(self, batch_number):
+  def _train_batch(self, batch_number, epoch):
     '''
     Perform a forward-propagation pass, training some stuff
     '''
     n = self.batch_size
-    k = self.learning_rate
+    k = self.learning_rate / (1 + batch_number/self.batches + epoch)
     first_ind = n * batch_number
     last_ind = n * (batch_number + 1)
     dE_dW = [np.zeros(W.shape) for W in self.weight_matrices]
