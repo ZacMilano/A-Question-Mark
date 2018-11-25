@@ -25,9 +25,13 @@ class NeuralNetwork:
     self.output_size = 62
     self.num_hidden_layers = 2
     self.learning_rate = .5
-    self.batch_size = 200
+    self.batch_size = 250
     self.epochs = 3
-    self.batches = int(np.ceil(len(self.train_labels) / self.batch_size))
+    # Want this to be called instead of referenced. This is nice when using the
+    # Python shell and altering hyperparameters of the network (so we don't have
+    # to update both self.batches AND self.batch_size when we update
+    # self.batch_size)
+    self.batches = lambda: int(np.ceil(len(self.train_labels)/self.batch_size))
 
     self.activation = tanh
     self.cost = mse
@@ -84,12 +88,12 @@ class NeuralNetwork:
       print('Training epoch #{:2d}...'.format(e))
       performance = [] # Add self.test() values here every once in a while
 
-      for n_batch in range(self.batches):
+      for n_batch in range(self.batches()):
         self._train_batch(n_batch, e)
         if n_batch % 500 == 0:
           t = self.test()
           print('After training {0:5d} batches, performance is {1:.2f}%.'\
-                .format(n_batch + e*self.batches, t*100))
+                .format(n_batch + e*self.batches(), t*100))
           performance.append(t)
     t = self.test()
     print('Training complete. Final accuracy on test data is {0:.2f}%.'.format(
@@ -101,7 +105,7 @@ class NeuralNetwork:
     Perform a forward-propagation pass, training some stuff
     '''
     n = self.batch_size
-    k = self.learning_rate / (1 + batch_number/self.batches + epoch)
+    k = self.learning_rate / (1 + 0.8*batch_number/self.batches() + 0.5*epoch)
     first_ind = n * batch_number
     last_ind = n * (batch_number + 1)
     dE_dW = [np.zeros(W.shape) for W in self.weight_matrices]
@@ -172,18 +176,24 @@ class NeuralNetwork:
     # print(dW[1], '\n', dB[1])
     return (dW, dB)
 
-  def test(self):
+  def test(self, test_on_all=False):
     '''
     Test how well the network currently performs on the test data.
 
     Return a proportion of correct answers to test sample size.
     '''
+    if not test_on_all:
+      l = self.test_labels
+      i = self.test_images
+    else:
+      l = self.test_labels + self.train_labels
+      i = self.test_images + self.train_images
     print('Testing...')
     correct = 0
-    for label, image in zip(self.test_labels, self.test_images):
+    for label, image in zip(l, i):
       if np.argmax(self.feed_forward(image)) == label:
         correct += 1
-    return correct/len(self.test_labels)
+    return correct/len(l)
 
 
 if __name__ == '__main__':
