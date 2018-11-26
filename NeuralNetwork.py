@@ -1,7 +1,10 @@
-import numpy as np
-from Data import *
+# Standard libraries
 from time import time
-from helpers import sigmoid, mse, normalize, relu, tanh, normalize_v2
+# 3rd party libraries
+import numpy as np
+# Our files
+from Data import *
+from helpers import mse, normalize, normalize_v2, sigmoid, relu, tanh
 
 class NeuralNetwork:
   def __init__(self, data_directory='../data_samples', final_testing=False,
