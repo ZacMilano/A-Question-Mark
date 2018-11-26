@@ -1,7 +1,7 @@
 import numpy as np
 from Data import *
 from time import time
-from helpers import sigmoid, mse, normalize, relu, tanh
+from helpers import sigmoid, mse, normalize, relu, tanh, normalize_v2
 
 class NeuralNetwork:
   def __init__(self, data_directory='../data_samples', final_testing=False,
@@ -94,7 +94,7 @@ class NeuralNetwork:
     self.activation.
     '''
     last = len(self.weight_matrices) - 1
-    y = normalize(np.copy(x))
+    y = normalize_v2(np.copy(x))
     for W, b in zip(self.weight_matrices, self.bias_vectors):
       z = np.dot(W, y) + b
       y = self.activation(z)
@@ -136,7 +136,7 @@ class NeuralNetwork:
         # Don't want an exception to be raised when training the last batch!
         break
       else: # In the clear
-        input_image  = normalize(self.train_images[i])
+        input_image  = normalize_v2(self.train_images[i])
         target_label = self.train_labels[i]
         _dW, _dB = self.backpropagation(input_image, target_label)
         dE_dW = [dW + dW_ for dW, dW_ in zip(dE_dW, _dW)]

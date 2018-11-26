@@ -114,8 +114,12 @@ def expected(n):
   y[n] = 1
   return y
 
-def normalize(lst, norm_factor=256):
+def normalize(lst, norm_factor=255):
   '''
   Normalize the given list of numbers (or np.array) into a np.array.
   '''
   return np.array(lst)/norm_factor
+
+def normalize_v2(lst, min_val=0, max_val=255):
+  d = (max_val - min_val)/2
+  return (np.array(lst) - d)/d
