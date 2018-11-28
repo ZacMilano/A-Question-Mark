@@ -1,3 +1,4 @@
+# import AbeTF.py as TF <- do we need this for the CNN?
 import numpy as np
 from Data import *
 from time import time
