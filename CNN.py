@@ -1,8 +1,7 @@
 import AbeTF as tf
-import numpy as np
 from Data import *
 from time import time
-from helpers import sigmoid, softmax, cross_entropy, normalize
+from helpers import normalize_v2
 
 class CNN(tf.Model):
   name = 'cnn'
@@ -10,7 +9,8 @@ class CNN(tf.Model):
   def __init__(self, training=True):
     super().__init__() # :)
     if training:
-      self.train_data, self.test_data = Data.train_and_pseudo_test(proportion=0.9)
+      self.train_data, self.test_data = Data.train_and_pseudo_test(
+        proportion=0.9)
     else:
       self.train_data = Data(data_directory=data_directory, is_test_data=False)
       self.test_data = Data(data_directory=data_directory, is_test_data=True)
