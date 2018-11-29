@@ -129,7 +129,7 @@ class NeuralNetwork:
     Perform a forward-propagation pass, training some stuff
     '''
     n = self.batch_size
-    k = self.learning_rate / (1 + 0.8*batch_number/self.batches() + 0.5*epoch)
+    k = self.learning_rate / (1 + batch_number/self.batches()) + 0.25*epoch)
     first_ind = n * batch_number
     last_ind = n * (batch_number + 1)
     dE_dW = [np.zeros(W.shape) for W in self.weight_matrices]

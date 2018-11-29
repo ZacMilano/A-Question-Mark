@@ -1,11 +1,10 @@
-# import AbeTF.py as TF <- do we need this for the CNN?
+import AbeTF.py as TF
 import numpy as np
 from Data import *
 from time import time
 from helpers import sigmoid, softmax, cross_entropy, normalize
-from NeuralNetwork import NeuralNetwork
 
-class CNN(NeuralNetwork):
+class CNN:
   pass
 
 if __name__ == '__main__':
