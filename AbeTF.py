@@ -12,11 +12,13 @@ def mean_squared_loss(actual, predicted):
 
 class Model:
     '''Base Model class, handles most of the boilerplate of training.
-    Subclasses are expected to define name, define_vars, define_model, and define_train.'''
+    Subclasses are expected to define name, define_vars, define_model, and
+    define_train.'''
     name = ''
 
     def __init__(self, x_dim, y_dim, loss_factory=None, training=True):
-        '''loss_factory returns a TensorFlow function {loss} based on TensorFlow expressions {actual} and {predictions}'''
+        '''loss_factory returns a TensorFlow function {loss} based on TensorFlow
+        expressions {actual} and {predictions}'''
         self.x_dim = x_dim
         self.y_dim = y_dim
 
@@ -31,14 +33,16 @@ class Model:
             self.x_feed = tf.placeholder(tf.float32, [None, x_dim])
             self.y_feed = tf.placeholder(tf.float32, [None, y_dim])
 
-            self.dataset = tf.data.Dataset.from_tensor_slices((self.x_feed, self.y_feed))
+            self.dataset = tf.data.Dataset.from_tensor_slices((self.x_feed,
+                                                              self.y_feed))
             self.dataset = self.dataset.shuffle(250).batch(100).repeat()
             self.iterator = self.dataset.make_initializable_iterator()
 
             self.training_x, self.training_y = self.iterator.get_next()
 
             self.x = tf.placeholder_with_default(self.training_x, [None, x_dim])
-            self.correct_y = tf.placeholder_with_default(self.training_y, [None, y_dim])
+            self.correct_y = tf.placeholder_with_default(self.training_y,
+                                                         [None, y_dim])
 
         else:
             self.x = tf.placeholder(tf.float32, [None, x_dim])
@@ -49,7 +53,8 @@ class Model:
         new_dict_keys = set(self.__dict__.keys())
         var_keys = new_dict_keys - prev_dict_keys
 
-        # prepares to save and load states of the variables defined in self.define_variables()
+        # prepares to save and load states of the variables defined in
+        # self.define_variables()
         self.variables = [self.__dict__[key] for key in sorted(var_keys)
             if type(self.__dict__[key]) == tf.Variable]
 
@@ -61,8 +66,10 @@ class Model:
 
     # General utility functions
     def initialize_training_set(self, session, x_instances, y_instances):
-        '''Initialize the training iterator in session with x_instances and y_instances.'''
-        session.run(self.iterator.initializer, {self.x_feed: x_instances, self.y_feed: y_instances})
+        '''Initialize the training iterator in session with x_instances and
+        y_instances.'''
+        session.run(self.iterator.initializer, {self.x_feed: x_instances,
+                                                self.y_feed: y_instances})
 
     # Model variable utility functions
     def initialize_variables(self, session):
@@ -77,10 +84,12 @@ class Model:
 
     def set_state(self, session, state):
         '''Sets vars in session according to state.'''
-        session.run([var.assign(val) for var, val in zip(self.variables, state)])
+        session.run([var.assign(val)
+                    for var, val in zip(self.variables, state)])
 
     def with_state(self, state):
-        '''Generate a partial feed dict that temporarily sets vars according to state.'''
+        '''Generate a partial feed dict that temporarily sets vars according to
+        state.'''
         return {var: val for var, val in zip(self.variables, state)}
 
     # Validation loss and model application functions
@@ -93,7 +102,9 @@ class Model:
         feed_dict[self.correct_y] = y_instances
 
         return session.run(self.loss, feed_dict)
-    def train_model(self, session, x_instances, y_instances, training_ratio=.8, validation_frequency=1000, validation_threshold=5, validation_patience=50):
+    def train_model(self, session, x_instances, y_instances, training_ratio=.8,
+                    validation_frequency=1000, validation_threshold=5,
+                    validation_patience=50):
         '''Implement the Jack training strategy.
 
         Arguments:
@@ -101,10 +112,13 @@ class Model:
         session -- tf session object
         x_instances -- values to be provided (nparray of dimension *,self.x_dim)
         y_instances -- values to be predicted (nparray of dimension *,self.y_dim)
-        training_ratio -- ratio of instances to include in the training set versus the validation set
-        validation_frequency -- number of training steps to perform per validation cycle
+        training_ratio -- ratio of instances to include in the training set
+          versus the validation set
+        validation_frequency -- number of training steps to perform per
+          validation cycle
         validation_threshold -- number of top states to keep track of at a time
-        validation_patience -- number of validation cycles without top-n performance to wait; set to None to wait for KeyboardInterrupt'''
+        validation_patience -- number of validation cycles without top-n
+          performance to wait; set to None to wait for KeyboardInterrupt'''
 
         training_cutoff = int(training_ratio * len(x_instances))
 
@@ -114,7 +128,8 @@ class Model:
         validation_x_instances = x_instances[training_cutoff:]
         validation_y_instances = y_instances[training_cutoff:]
 
-        self.initialize_training_set(session, training_x_instances, training_y_instances)
+        self.initialize_training_set(session, training_x_instances,
+                                     training_y_instances)
 
         best_n = []
         patience = 0
@@ -123,7 +138,9 @@ class Model:
             try:
                 session.run(self.training_step)
                 if i % validation_frequency == 0:
-                    val_performace = self.check_loss(session, validation_x_instances, validation_y_instances)
+                    val_performace = self.check_loss(session,
+                                                     validation_x_instances,
+                                                     validation_y_instances)
 
                     report = (-val_performace, self.get_state(session))
                     if len(best_n) < validation_threshold:
@@ -139,7 +156,8 @@ class Model:
                         break
 
                     print('Validation:', val_performace, end='\t')
-                    print('Total:', self.check_loss(session, x_instances, y_instances))
+                    print('Total:', self.check_loss(session, x_instances,
+                                                    y_instances))
                 i += 1
             except KeyboardInterrupt:
                 break
@@ -178,7 +196,8 @@ class LinRegModel(Model): # a sample model defining a linear regression
     name = 'linreg'
 
     def define_variables(self):
-        self.W = tf.Variable(tf.zeros([self.x_dim, self.y_dim]), dtype=tf.float32)
+        self.W = tf.Variable(tf.zeros([self.x_dim, self.y_dim]),
+                             dtype=tf.float32)
         self.b = tf.Variable(tf.zeros([self.y_dim]), dtype=tf.float32)
 
     def define_model(self):
@@ -211,10 +230,12 @@ def train_model(model_class, x_instances, y_instances, init_state=None):
     return state
 
 def test_model(model_class, state, x_instances, y_instances):
-    '''Instantiates model_class with state and tests it on x_instances and y_instances.
+    '''Instantiates model_class with state and tests it on x_instances and
+    y_instances.
     Returns the loss value over the dataset.
-    Should be called on completely different x_instances and y_instances than used
-    for training, and only used on the test set immediately before publishing results.'''
+    Should be called on completely different x_instances and y_instances than
+    used for training, and only used on the test set immediately before
+    publishing results.'''
 
     x_dim = x_instances.shape[1]
     y_dim = y_instances.shape[1]
@@ -231,10 +252,12 @@ def test_model(model_class, state, x_instances, y_instances):
     return loss
 
 def make_predictions(model_class, state, x_instances, y_dim):
-    '''Instantiates model_class with state and tests it on x_instances and y_instances.
+    '''Instantiates model_class with state and tests it on x_instances and
+    y_instances.
     Returns the loss value over the dataset.
-    Should be called on completely different x_instances and y_instances than used
-    for training, and only used on the test set immediately before publishing results.'''
+    Should be called on completely different x_instances and y_instances than
+    used for training, and only used on the test set immediately before
+    publishing results.'''
 
     x_dim = x_instances.shape[1]
 

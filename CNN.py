@@ -16,4 +16,4 @@ if __name__ == '__main__':
   mins, secs = int(dt // 60), int(dt % 60)
   print('-'*80 +
         '\nCompleted in {:0>2d}:{:0>2d}\n'.format(mins, secs) +
-        '-'*80)
+         '-'*80)
