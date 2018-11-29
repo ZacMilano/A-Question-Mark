@@ -7,6 +7,21 @@ from helpers import sigmoid, softmax, cross_entropy, normalize
 class CNN(tf.Model):
   name = 'cnn'
 
+  def __init__(self, training=True):
+    super().__init__() # :)
+    if training:
+      self.train_data, self.test_data = Data.train_and_pseudo_test(proportion=0.9)
+    else:
+      self.train_data = Data(data_directory=data_directory, is_test_data=False)
+      self.test_data = Data(data_directory=data_directory, is_test_data=True)
+    print('Data loaded.')
+
+    self.train_labels = self.train_data.labels()
+    self.train_images = self.train_data.images()
+
+    self.test_labels = self.test_data.labels()
+    self.test_images = self.test_data.images()
+
   def define_variables(self):
     '''Define vars needed for model.'''
     pass
