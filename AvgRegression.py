@@ -2,7 +2,7 @@ from Data import *
 import Draw
 import random
 
-def mod_relu(x, n=100):
+def mod_relu(x, n=60):
   if x >= n: return x
   else: return 0
 
