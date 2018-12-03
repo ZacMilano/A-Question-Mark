@@ -34,7 +34,7 @@ class Model:
       self.y_feed = tf.placeholder(tf.float32, [None, y_dim])
 
       self.dataset = tf.data.Dataset.from_tensor_slices((self.x_feed,
-                                                        self.y_feed))
+                                                         self.y_feed))
       self.dataset = self.dataset.shuffle(250).batch(100).repeat()
       self.iterator = self.dataset.make_initializable_iterator()
 
@@ -56,7 +56,7 @@ class Model:
     # prepares to save and load states of the variables defined in
     # self.define_variables()
     self.variables = [self.__dict__[key] for key in sorted(var_keys)
-      if type(self.__dict__[key]) == tf.Variable]
+                      if type(self.__dict__[key]) == tf.Variable]
 
     self.define_model()
     self.loss = self.loss_factory(self.correct_y, self.predicted_y)
@@ -76,7 +76,7 @@ class Model:
     '''Initialize vars in session.'''
     session.run(tf.variables_initializer(self.variables))
     if not self.optimizer is None:
-        session.run(tf.variables_initializer(self.optimizer.variables()))
+      session.run(tf.variables_initializer(self.optimizer.variables()))
 
   def get_state(self, session):
     '''Returns a state representing the vars in session.'''
@@ -84,8 +84,7 @@ class Model:
 
   def set_state(self, session, state):
     '''Sets vars in session according to state.'''
-    session.run([var.assign(val)
-                for var, val in zip(self.variables, state)])
+    session.run([var.assign(val) for var, val in zip(self.variables, state)])
 
   def with_state(self, state):
     '''Generate a partial feed dict that temporarily sets vars according to
@@ -95,9 +94,9 @@ class Model:
   # Validation loss and model application functions
   def check_loss(self, session, x_instances, y_instances, state=None):
     if not state is None:
-        feed_dict = self.with_state(state)
+      feed_dict = self.with_state(state)
     else:
-        feed_dict = {}
+      feed_dict = {}
     feed_dict[self.x] = x_instances
     feed_dict[self.correct_y] = y_instances
 
@@ -128,7 +127,8 @@ class Model:
     validation_x_instances = x_instances[training_cutoff:]
     validation_y_instances = y_instances[training_cutoff:]
 
-    self.initialize_training_set(session, training_x_instances,
+    self.initialize_training_set(session,
+                                 training_x_instances,
                                  training_y_instances)
 
     best_n = []
@@ -169,9 +169,9 @@ class Model:
 
   def apply_model(self, session, x_instances, state=None):
     if not state is None:
-        feed_dict = self.with_state(state)
+      feed_dict = self.with_state(state)
     else:
-        feed_dict = {}
+      feed_dict = {}
     feed_dict[self.x] = x_instances
     return session.run(self.predicted_y, feed_dict)
 
