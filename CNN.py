@@ -24,13 +24,13 @@ class CNN(Atf.Model):
 
   def __init__(self, training=True, loss_factory=x_entropy):
     super().__init__(x_dim=(28*28), y_dim=62)
-    # if training:
-      # self.train_data, self.test_data = \
-          # Data.train_and_pseudo_test(proportion=0.9)
-    # else:
-      # self.train_data = Data(data_directory=data_directory, is_test_data=False)
-      # self.test_data = Data(data_directory=data_directory, is_test_data=True)
-    # print('Data loaded.')
+    if training:
+      self.train_data, self.test_data = \
+          Data.train_and_pseudo_test(proportion=0.9)
+    else:
+      self.train_data = Data(data_directory=data_directory, is_test_data=False)
+      self.test_data = Data(data_directory=data_directory, is_test_data=True)
+    print('Data loaded.')
 
     self.train_labels = self.train_data.labels()
     self.train_images = self.train_data.images()
