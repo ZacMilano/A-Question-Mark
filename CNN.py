@@ -13,6 +13,15 @@ def x_entropy(actual, predicted):
   loss = tf.reduce_mean(x_ent, name='x_entropy_loss')
   return loss
 
+def image_list_to_square(img):
+  height = width = 28
+  new_img = []
+  for i in range(height):
+    new_img.append([])
+    for j in range(width):
+      new_img[i].append(img[width*i + j])
+  return new_img
+
 class CNN(Atf.Model):
   name = 'cnn'
 
@@ -78,7 +87,8 @@ class CNN(Atf.Model):
 
   def define_model(self):
     '''Defines self.predicted_y based on self.x and any variables.'''
-    convolved = self.new_conv_layer(inputs=self.x, kernels=self.k_0,
+    square_x = tf.convert_to_tensor(image_list_to_square(self.x))
+    convolved = self.new_conv_layer(inputs=square_x, kernels=self.k_0,
                                     biases=self.b_0)
     self.predicted_y = convolved @ self.W_final + self.b_final
 
