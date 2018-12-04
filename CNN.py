@@ -80,9 +80,10 @@ class CNN(Atf.Model):
         'biases', shape=[n_filters], initializer=tf.zeros_initializer())
 
     with tf.variable_scope('fc_final', reuse=tf.AUTO_REUSE):
-      shape = [n_filters] + CNN.OUTPUT_SHAPE
+      W_shape = [n_filters * 784] + CNN.OUTPUT_SHAPE
+      # self.W_final = tf.layers.dense(inputs=
       self.W_final = tf.get_variable(
-        'W', shape=shape, initializer=tf.random_normal_initializer())
+        'W', shape=W_shape, initializer=tf.random_normal_initializer())
       self.b_final = tf.get_variable(
         'b', shape=CNN.OUTPUT_SHAPE, initializer=tf.zeros_initializer())
 
@@ -91,7 +92,10 @@ class CNN(Atf.Model):
     square_x = tf.reshape(self.x, [-1, CNN.IMAGE_HEIGHT, CNN.IMAGE_WIDTH, 1])
     convolved = self.new_conv_layer(inputs=square_x, kernels=self.k_0,
                                     biases=self.b_0)
-    self.predicted_y = convolved @ self.W_final + self.b_final
+    c_shape = convolved.shape
+    conv_neurons = tf.reshape(convolved,
+                              [-1, int(c_shape[1] * c_shape[2] * c_shape[3])])
+    self.predicted_y = conv_neurons @ self.W_final + self.b_final
 
   def define_train(self):
     '''Defines self.optimizer and self.training_step based on self.loss.'''
@@ -101,7 +105,12 @@ class CNN(Atf.Model):
 if __name__ == '__main__':
   t0 = time()
 
-  n = CNN()
+  try:
+    n = CNN()
+    print('CNN made.')
+  except Exception as e:
+    print('\nCNN not properly made.\n')
+    raise e
 
   dt = time() - t0
   mins, secs = int(dt // 60), int(dt % 60)
