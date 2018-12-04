@@ -5,23 +5,13 @@ from time import time
 from helpers import normalize_v2
 
 def x_entropy(actual, predicted):
-  x_ent = tf.nn.sparse_softmax_cross_entropy_with_logits(
+  # x_ent = tf.nn.sparse_softmax_cross_entropy_with_logits(
+  x_ent = tf.nn.softmax_cross_entropy_with_logits_v2(
     labels = actual,
     logits = predicted,
     name   = 'x_entropy'
   )
-  loss = tf.reduce_mean(x_ent, name='x_entropy_loss')
-  return loss
-
-# Want to be able to re-shape existing tf.placeholder (self.x) to be a square
-def image_list_to_square(img):
-  height = width = 28
-  new_img = []
-  for i in range(height):
-    new_img.append([])
-    for j in range(width):
-      new_img[i].append(img[width*i + j])
-  return new_img
+  return tf.reduce_mean(x_ent, name='x_entropy_loss')
 
 class CNN(Atf.Model):
   name = 'cnn'
@@ -30,23 +20,51 @@ class CNN(Atf.Model):
   N_PIXELS = IMAGE_WIDTH * IMAGE_HEIGHT
 
   INPUT_SHAPE = [N_PIXELS]
-  OUTPUT_SHAPE = [62]
 
-  def __init__(self, training=True, loss_factory=x_entropy):
-    super().__init__(x_dim=(28*28), y_dim=62)
-    if training:
-      self.train_data, self.test_data = \
-          Data.train_and_pseudo_test(proportion=0.9)
-    else:
-      self.train_data = Data(data_directory=data_directory, is_test_data=False)
-      self.test_data = Data(data_directory=data_directory, is_test_data=True)
-    print('Data loaded.')
+  def __init__(self, x_dim=(28*28), y_dim=62, training=True,
+               loss_factory=x_entropy):
+    super().__init__(x_dim=x_dim, y_dim=y_dim, loss_factory=loss_factory,
+                     training=training)
+    '''
+https://stackoverflow.com/questions/47765595/tensorflow-attempting-to-use-uninitialized-value-beta1-power/47780342
+https://stackoverflow.com/questions/48163685/attempting-to-use-uninitialized-value-inceptionv3-mixed-6d-branch-3-conv2d-0b-1x
+Traceback (most recent call last):
+  File "<stdin>", line 1, in <module>
+  File "/home/zac/Documents/School Files/b351/final/a/AbeTF.py", line 226, in
+  train_model
+    model.train_model(sess, x_instances, y_instances)
+  File "/home/zac/Documents/School Files/b351/final/a/AbeTF.py", line 139, in
+  train_model
+    session.run(self.training_step)
 
-    self.train_labels = self.train_data.labels()
-    self.train_images = self.train_data.images()
+Caused by op 'fc_final/b/read', defined at:
+  File "<stdin>", line 1, in <module>
+  File "/home/zac/Documents/School Files/b351/final/a/AbeTF.py", line 219, in
+  train_model
+    model = model_class(x_dim, y_dim)
+  File "/home/zac/Documents/School Files/b351/final/a/CNN.py", line 27, in
+  __init__
+    training=training)
+  File "/home/zac/Documents/School Files/b351/final/a/AbeTF.py", line 52, in
+  __init__
+    self.define_variables()
+  File "/home/zac/Documents/School Files/b351/final/a/CNN.py", line 77, in
+  define_variables
+    'b', shape=[self.y_dim], initializer=tf.zeros_initializer())
+    '''
+    # if training:
+    #   self.train_data, self.test_data = \
+    #       Data.train_and_pseudo_test(proportion=0.9)
+    # else:
+    #   self.train_data = Data(data_directory=data_directory,is_test_data=False)
+    #   self.test_data = Data(data_directory=data_directory, is_test_data=True)
+    # print('Data loaded.')
 
-    self.test_labels = self.test_data.labels()
-    self.test_images = self.test_data.images()
+    # self.train_labels = self.train_data.labels()
+    # self.train_images = self.train_data.images()
+
+    # self.test_labels = self.test_data.labels()
+    # self.test_images = self.test_data.images()
 
   def new_conv_layer(self, inputs=None, kernels=None, biases=None):
     strides = [1, 1, 1, 1]
@@ -70,7 +88,6 @@ class CNN(Atf.Model):
     '''Define vars needed for model.'''
     with tf.variable_scope('conv_0'):
       filter_shape = (3,3)
-      input_channels = CNN.N_PIXELS
       n_filters = 40
       shape = [filter_shape[0], filter_shape[1], 1, n_filters]
 
@@ -80,12 +97,13 @@ class CNN(Atf.Model):
         'biases', shape=[n_filters], initializer=tf.zeros_initializer())
 
     with tf.variable_scope('fc_final', reuse=tf.AUTO_REUSE):
-      W_shape = [n_filters * 784] + CNN.OUTPUT_SHAPE
-      # self.W_final = tf.layers.dense(inputs=
+      W_shape = [n_filters * 784, self.y_dim]
       self.W_final = tf.get_variable(
         'W', shape=W_shape, initializer=tf.random_normal_initializer())
+      # FailedPreconditionError (see above for traceback): Attempting to use
+      # uninitialized value fc_final/b
       self.b_final = tf.get_variable(
-        'b', shape=CNN.OUTPUT_SHAPE, initializer=tf.zeros_initializer())
+        'b', shape=[self.y_dim], initializer=tf.zeros_initializer())
 
   def define_model(self):
     '''Defines self.predicted_y based on self.x and any variables.'''
@@ -105,12 +123,20 @@ class CNN(Atf.Model):
 if __name__ == '__main__':
   t0 = time()
 
+  # try:
+  #   n = CNN()
+  #   print('CNN made.')
+  # except Exception as e:
+  #   print('\nCNN not properly made.\n')
+  #   raise e
   try:
-    n = CNN()
-    print('CNN made.')
-  except Exception as e:
-    print('\nCNN not properly made.\n')
-    raise e
+    d = Data()
+    imgs,   labels   = d.images()[    :4000], d.labels()[    :4000]
+    imgs_t, labels_t = d.images()[4000:5000], d.labels()[4000:5000]
+    st = Atf.train_model(CNN, imgs, labels)
+    print(Atf.test_model(CNN, st, imgs_t, labels_t))
+  except:
+    pass
 
   dt = time() - t0
   mins, secs = int(dt // 60), int(dt % 60)

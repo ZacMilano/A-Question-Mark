@@ -212,9 +212,14 @@ def train_model(model_class, x_instances, y_instances, init_state=None):
   '''Instantiates and trains model_class on x_instances and y_instances.
   Returns the trained state of the model (as a list of variables' values).'''
 
-  x_dim = x_instances.shape[1]
-  y_dim = y_instances.shape[1]
+  # x_dim = x_instances.shape[1]  original; but later x_instances is expected to
+  # y_dim = y_instances.shape[1]  be a normal list???????
+  x_dim = 28*28
+  y_dim = 62
 
+  '''
+  https://stackoverflow.com/questions/48163685/attempting-to-use-uninitialized-value-inceptionv3-mixed-6d-branch-3-conv2d-0b-1x
+  '''
   with tf.Graph().as_default():
     model = model_class(x_dim, y_dim)
 
@@ -223,6 +228,8 @@ def train_model(model_class, x_instances, y_instances, init_state=None):
 
       if not init_state is None: model.set_state(sess, init_state)
 
+      # here {x|y}_instances is expected to be a list (len() is taken in
+      # model.train_model)
       model.train_model(sess, x_instances, y_instances)
 
       state = model.get_state(sess)
