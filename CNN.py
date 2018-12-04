@@ -13,6 +13,7 @@ def x_entropy(actual, predicted):
   loss = tf.reduce_mean(x_ent, name='x_entropy_loss')
   return loss
 
+# Want to be able to re-shape existing tf.placeholder (self.x) to be a square
 def image_list_to_square(img):
   height = width = 28
   new_img = []
@@ -71,7 +72,7 @@ class CNN(Atf.Model):
       filter_shape = (3,3)
       input_channels = CNN.N_PIXELS
       n_filters = 40
-      shape = [filter_shape[0], filter_shape[1], input_channels, n_filters]
+      shape = [filter_shape[0], filter_shape[1], 1, n_filters]
 
       self.k_0 = tf.get_variable(
         'kernels', shape=shape, initializer=tf.random_normal_initializer())
@@ -87,7 +88,7 @@ class CNN(Atf.Model):
 
   def define_model(self):
     '''Defines self.predicted_y based on self.x and any variables.'''
-    square_x = tf.convert_to_tensor(image_list_to_square(self.x))
+    square_x = tf.reshape(self.x, [-1, CNN.IMAGE_HEIGHT, CNN.IMAGE_WIDTH, 1])
     convolved = self.new_conv_layer(inputs=square_x, kernels=self.k_0,
                                     biases=self.b_0)
     self.predicted_y = convolved @ self.W_final + self.b_final
