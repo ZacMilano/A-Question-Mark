@@ -68,14 +68,14 @@ Caused by op 'fc_final/b/read', defined at:
 
   def new_conv_layer(self, inputs=None, kernels=None, biases=None):
     strides = [1, 1, 1, 1]
-    padding = "SAME"
+    padding = 'VALID'
 
     convolved_images = tf.nn.conv2d(inputs, kernels, strides=strides,
                                     padding=padding)
     convolved_images = tf.nn.relu(convolved_images + biases)
     return convolved_images
 
-  def pool(self, convolved, pooling_shape=(2,2), stride=2):
+  def pool(self, convolved, pooling_shape=(2,2), stride=1):
     ksize = [1, pooling_shape[0], pooling_shape[1], 1]
     strides = [1, stride, stride, 1]
     padding = 'SAME'
@@ -87,17 +87,41 @@ Caused by op 'fc_final/b/read', defined at:
   def define_variables(self):
     '''Define vars needed for model.'''
     with tf.variable_scope('conv_0'):
-      filter_shape = (3,3)
+      filter_shape = (5,5)
       n_filters = 40
-      shape = [filter_shape[0], filter_shape[1], 1, n_filters]
+      k_shape = [filter_shape[0], filter_shape[1], 1, n_filters]
 
       self.k_0 = tf.get_variable(
-        'kernels', shape=shape, initializer=tf.random_normal_initializer())
+        'kernels', shape=k_shape, initializer=tf.random_normal_initializer())
       self.b_0  = tf.get_variable(
         'biases', shape=[n_filters], initializer=tf.zeros_initializer())
+      # Due to VALID padding
+      resulting_image_width = CNN.IMAGE_WIDTH - (filter_shape[0] - 1)
 
-    with tf.variable_scope('fc_final', reuse=tf.AUTO_REUSE):
-      W_shape = [n_filters * 784, self.y_dim]
+    with tf.variable_scope('conv_1'):
+      filter_shape = (5,5)
+      n_filters_old = n_filters
+      n_filters = 40
+      k_shape = [filter_shape[0], filter_shape[1], n_filters_old, n_filters]
+
+      self.k_1 = tf.get_variable(
+        'kernels', shape=k_shape, initializer=tf.random_normal_initializer())
+      self.b_1  = tf.get_variable(
+        'biases', shape=[n_filters], initializer=tf.zeros_initializer())
+      # Due to VALID padding
+      resulting_image_width = resulting_image_width - (filter_shape[0] - 1)
+
+    with tf.variable_scope('fc_features', reuse=tf.AUTO_REUSE):
+      n_features = 150
+      W_shape = [n_filters * resulting_image_width * resulting_image_width,
+                 n_features]
+      self.W_features = tf.get_variable(
+        'W', shape=W_shape, initializer=tf.random_normal_initializer())
+      self.b_features = tf.get_variable(
+        'b', shape=[n_features], initializer=tf.zeros_initializer())
+
+    with tf.variable_scope('fc_classes', reuse=tf.AUTO_REUSE):
+      W_shape = [n_features, self.y_dim]
       self.W_final = tf.get_variable(
         'W', shape=W_shape, initializer=tf.random_normal_initializer())
       # FailedPreconditionError (see above for traceback): Attempting to use
@@ -110,10 +134,15 @@ Caused by op 'fc_final/b/read', defined at:
     square_x = tf.reshape(self.x, [-1, CNN.IMAGE_HEIGHT, CNN.IMAGE_WIDTH, 1])
     convolved = self.new_conv_layer(inputs=square_x, kernels=self.k_0,
                                     biases=self.b_0)
-    c_shape = convolved.shape
-    conv_neurons = tf.reshape(convolved,
+    convolved = self.pool(convolved)
+    convolved_2 = self.new_conv_layer(inputs=convolved, kernels=self.k_1,
+                                      biases=self.b_1)
+
+    c_shape = convolved_2.shape
+    conv_neurons = tf.reshape(convolved_2,
                               [-1, int(c_shape[1] * c_shape[2] * c_shape[3])])
-    self.predicted_y = conv_neurons @ self.W_final + self.b_final
+    features = tf.matmul(conv_neurons, self.W_features) + self.b_features
+    self.predicted_y = tf.matmul(features, self.W_final) + self.b_final
 
   def define_train(self):
     '''Defines self.optimizer and self.training_step based on self.loss.'''
@@ -123,20 +152,16 @@ Caused by op 'fc_final/b/read', defined at:
 if __name__ == '__main__':
   t0 = time()
 
-  # try:
-  #   n = CNN()
-  #   print('CNN made.')
-  # except Exception as e:
-  #   print('\nCNN not properly made.\n')
-  #   raise e
   try:
-    d = Data()
-    imgs,   labels   = d.images()[    :4000], d.labels()[    :4000]
-    imgs_t, labels_t = d.images()[4000:5000], d.labels()[4000:5000]
-    st = Atf.train_model(CNN, imgs, labels)
-    print(Atf.test_model(CNN, st, imgs_t, labels_t))
-  except:
-    pass
+    n = CNN()
+    print('CNN made.')
+    # d = Data()
+    # imgs,   labels   = d.images()[    :4000], d.labels()[    :4000]
+    # imgs_t, labels_t = d.images()[4000:5000], d.labels()[4000:5000]
+    # st = Atf.train_model(CNN, imgs, labels)
+    # print(Atf.test_model(CNN, st, imgs_t, labels_t))
+  except Exception as e:
+    raise e
 
   dt = time() - t0
   mins, secs = int(dt // 60), int(dt % 60)

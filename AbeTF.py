@@ -213,7 +213,7 @@ def train_model(model_class, x_instances, y_instances, init_state=None):
   Returns the trained state of the model (as a list of variables' values).'''
 
   # x_dim = x_instances.shape[1]  original; but later x_instances is expected to
-  # y_dim = y_instances.shape[1]  be a normal list???????
+  # y_dim = y_instances.shape[1]  be a normal list?
   x_dim = 28*28
   y_dim = 62
 
