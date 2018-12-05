@@ -118,11 +118,13 @@ if __name__ == '__main__':
   try:
     # n = CNN()
     # print('CNN made.')
+    top = 40000
+    train_top = 50000
     d = Data()
-    imgs,   labels   = np.array(d.images()[    :4000]), \
-        d.labels()[    :4000]
-    imgs_t, labels_t = np.array(d.images()[4000:5000]), \
-        d.labels()[4000:5000]
+    imgs,   labels   = np.array(d.images()[    :top]), \
+        d.labels()[    :top]
+    imgs_t, labels_t = np.array(d.images()[top:train_top]), \
+        d.labels()[top:train_top]
     labels, labels_t = np.array([expected(label) for label in labels]), \
         np.array([expected(label) for label in labels_t])
     st = Atf.train_model(CNN, imgs, labels)
