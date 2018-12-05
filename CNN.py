@@ -2,7 +2,7 @@ import AbeTF as Atf
 import tensorflow as tf
 from Data import *
 from time import time
-from helpers import normalize_v2, expected
+from helpers import normalize_tf, expected
 import numpy as np
 
 def x_entropy(actual, predicted):
@@ -93,7 +93,8 @@ class CNN(Atf.Model):
 
   def define_model(self):
     '''Defines self.predicted_y based on self.x and any variables.'''
-    square_x = tf.reshape(self.x, [-1, CNN.IMAGE_HEIGHT, CNN.IMAGE_WIDTH, 1])
+    norm_x = normalize_tf(self.x)
+    square_x = tf.reshape(norm_x, [-1, CNN.IMAGE_HEIGHT, CNN.IMAGE_WIDTH, 1])
     convolved = self.new_conv_layer(inputs=square_x, kernels=self.k_0,
                                     biases=self.b_0)
     convolved = self.pool(convolved)
@@ -112,28 +113,31 @@ class CNN(Atf.Model):
     self.optimizer = tf.train.AdamOptimizer()
     self.training_step = self.optimizer.minimize(self.loss)
 
+# Tensorflow/CUDA's GPU Session makes the terminal output all crazy :)
+def visible_print(s):
+  print('-'*80 + '\n' + s + '\n' + '-'*80)
+
 if __name__ == '__main__':
   t0 = time()
 
   try:
-    # n = CNN()
-    # print('CNN made.')
-    top = 40000
-    train_top = 50000
     d = Data()
-    imgs,   labels   = np.array(d.images()[    :top]), \
-        d.labels()[    :top]
-    imgs_t, labels_t = np.array(d.images()[top:train_top]), \
-        d.labels()[top:train_top]
-    labels, labels_t = np.array([expected(label) for label in labels]), \
-        np.array([expected(label) for label in labels_t])
-    st = Atf.train_model(CNN, imgs, labels)
-    print(Atf.test_model(CNN, st, imgs_t, labels_t))
+    visible_print('Data constructed.')
+    b_s = 4000
+    st = None
+    n_batches = int(np.ceil(len(d.labels())/b_s))
+
+    visible_print('Going to train {} batches. Here we go!'.format(n_batches))
+    for b in range(n_batches):
+      visible_print('Training batch #{}'.format(b))
+      first = b_s *  b
+      last  = b_s * (b+1)
+      imgs, labels = np.array(d.images()[first:last]), d.labels()[first:last]
+      labels = np.array([expected(l) for l in labels])
+      st = Atf.train_model(CNN, imgs, labels, init_state=st)
   except Exception as e:
     raise e
 
   dt = time() - t0
   mins, secs = int(dt // 60), int(dt % 60)
-  print('-'*80 +
-        '\nCompleted in {:0>2d}:{:0>2d}\n'.format(mins, secs) +
-         '-'*80)
+  visible_print('Completed in {:0>2d}:{:0>2d}'.format(mins, secs))

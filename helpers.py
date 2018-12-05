@@ -123,3 +123,10 @@ def normalize(lst, norm_factor=255):
 def normalize_v2(lst, min_val=0, max_val=255):
   d = (max_val - min_val)/2
   return (np.array(lst) - d)/d
+
+# More general normalization for tensorflow tensors
+def normalize_tf(tensor):
+  min_val = 0
+  max_val = 255
+  d = (max_val - min_val)/2
+  return (tensor - d)/d
