@@ -2,7 +2,8 @@ import AbeTF as Atf
 import tensorflow as tf
 from Data import *
 from time import time
-from helpers import normalize_v2
+from helpers import normalize_v2, expected
+import numpy as np
 
 def x_entropy(actual, predicted):
   # x_ent = tf.nn.sparse_softmax_cross_entropy_with_logits(
@@ -25,48 +26,9 @@ class CNN(Atf.Model):
                loss_factory=x_entropy):
     super().__init__(x_dim=x_dim, y_dim=y_dim, loss_factory=loss_factory,
                      training=training)
-    '''
-https://stackoverflow.com/questions/47765595/tensorflow-attempting-to-use-uninitialized-value-beta1-power/47780342
-https://stackoverflow.com/questions/48163685/attempting-to-use-uninitialized-value-inceptionv3-mixed-6d-branch-3-conv2d-0b-1x
-Traceback (most recent call last):
-  File "<stdin>", line 1, in <module>
-  File "/home/zac/Documents/School Files/b351/final/a/AbeTF.py", line 226, in
-  train_model
-    model.train_model(sess, x_instances, y_instances)
-  File "/home/zac/Documents/School Files/b351/final/a/AbeTF.py", line 139, in
-  train_model
-    session.run(self.training_step)
-
-Caused by op 'fc_final/b/read', defined at:
-  File "<stdin>", line 1, in <module>
-  File "/home/zac/Documents/School Files/b351/final/a/AbeTF.py", line 219, in
-  train_model
-    model = model_class(x_dim, y_dim)
-  File "/home/zac/Documents/School Files/b351/final/a/CNN.py", line 27, in
-  __init__
-    training=training)
-  File "/home/zac/Documents/School Files/b351/final/a/AbeTF.py", line 52, in
-  __init__
-    self.define_variables()
-  File "/home/zac/Documents/School Files/b351/final/a/CNN.py", line 77, in
-  define_variables
-    'b', shape=[self.y_dim], initializer=tf.zeros_initializer())
-    '''
-    # if training:
-    #   self.train_data, self.test_data = \
-    #       Data.train_and_pseudo_test(proportion=0.9)
-    # else:
-    #   self.train_data = Data(data_directory=data_directory,is_test_data=False)
-    #   self.test_data = Data(data_directory=data_directory, is_test_data=True)
-    # print('Data loaded.')
-
-    # self.train_labels = self.train_data.labels()
-    # self.train_images = self.train_data.images()
-
-    # self.test_labels = self.test_data.labels()
-    # self.test_images = self.test_data.images()
 
   def new_conv_layer(self, inputs=None, kernels=None, biases=None):
+    # We want only named args so that there is less confusion.
     strides = [1, 1, 1, 1]
     padding = 'VALID'
 
@@ -76,7 +38,7 @@ Caused by op 'fc_final/b/read', defined at:
     return convolved_images
 
   def pool(self, convolved, pooling_shape=(2,2), stride=1):
-    ksize = [1, pooling_shape[0], pooling_shape[1], 1]
+    ksize = [1, *pooling_shape, 1] # pooling_shape must be 2-tuple of ints >0
     strides = [1, stride, stride, 1]
     padding = 'SAME'
 
@@ -137,6 +99,7 @@ Caused by op 'fc_final/b/read', defined at:
     convolved = self.pool(convolved)
     convolved_2 = self.new_conv_layer(inputs=convolved, kernels=self.k_1,
                                       biases=self.b_1)
+    convolved_2 = self.pool(convolved_2)
 
     c_shape = convolved_2.shape
     conv_neurons = tf.reshape(convolved_2,
@@ -153,13 +116,17 @@ if __name__ == '__main__':
   t0 = time()
 
   try:
-    n = CNN()
-    print('CNN made.')
-    # d = Data()
-    # imgs,   labels   = d.images()[    :4000], d.labels()[    :4000]
-    # imgs_t, labels_t = d.images()[4000:5000], d.labels()[4000:5000]
-    # st = Atf.train_model(CNN, imgs, labels)
-    # print(Atf.test_model(CNN, st, imgs_t, labels_t))
+    # n = CNN()
+    # print('CNN made.')
+    d = Data()
+    imgs,   labels   = np.array(d.images()[    :4000]), \
+        d.labels()[    :4000]
+    imgs_t, labels_t = np.array(d.images()[4000:5000]), \
+        d.labels()[4000:5000]
+    labels, labels_t = np.array([expected(label) for label in labels]), \
+        np.array([expected(label) for label in labels_t])
+    st = Atf.train_model(CNN, imgs, labels)
+    print(Atf.test_model(CNN, st, imgs_t, labels_t))
   except Exception as e:
     raise e
 

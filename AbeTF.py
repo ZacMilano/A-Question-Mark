@@ -1,6 +1,7 @@
 # From B351 Final Project (Spring 2018)
 # Author: Abe Leite
 import tensorflow as tf
+from tensorflow.python.ops.variables import RefVariable
 import numpy as np
 import heapq
 
@@ -56,7 +57,8 @@ class Model:
     # prepares to save and load states of the variables defined in
     # self.define_variables()
     self.variables = [self.__dict__[key] for key in sorted(var_keys)
-                      if type(self.__dict__[key]) == tf.Variable]
+                      if type(self.__dict__[key]) in
+                      (tf.Variable, RefVariable)]
 
     self.define_model()
     self.loss = self.loss_factory(self.correct_y, self.predicted_y)
@@ -212,10 +214,10 @@ def train_model(model_class, x_instances, y_instances, init_state=None):
   '''Instantiates and trains model_class on x_instances and y_instances.
   Returns the trained state of the model (as a list of variables' values).'''
 
-  # x_dim = x_instances.shape[1]  original; but later x_instances is expected to
-  # y_dim = y_instances.shape[1]  be a normal list?
-  x_dim = 28*28
-  y_dim = 62
+  x_dim = x_instances.shape[1] # original; but later x_instances is expected to
+  y_dim = y_instances.shape[1] # be a normal list?
+  # x_dim = 28*28
+  # y_dim = 62
 
   '''
   https://stackoverflow.com/questions/48163685/attempting-to-use-uninitialized-value-inceptionv3-mixed-6d-branch-3-conv2d-0b-1x

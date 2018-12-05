@@ -110,7 +110,7 @@ def expected(n):
 
   We probably won't use this.
   '''
-  y = [0] * 62
+  y = np.array([0] * 62)
   y[n] = 1
   return y
 
