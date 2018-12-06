@@ -30,13 +30,16 @@ class Model:
 
     self.training = training
 
+    self.batch_size = 500
+
     if self.training:
       self.x_feed = tf.placeholder(tf.float32, [None, x_dim])
       self.y_feed = tf.placeholder(tf.float32, [None, y_dim])
 
       self.dataset = tf.data.Dataset.from_tensor_slices((self.x_feed,
                                                          self.y_feed))
-      self.dataset = self.dataset.shuffle(250).batch(100).repeat()
+      # self.dataset = self.dataset.shuffle(250).batch(self.batch_size).repeat()
+      self.dataset = self.dataset.batch(self.batch_size).repeat()
       self.iterator = self.dataset.make_initializable_iterator()
 
       self.training_x, self.training_y = self.iterator.get_next()
@@ -103,6 +106,30 @@ class Model:
     feed_dict[self.correct_y] = y_instances
 
     return session.run(self.loss, feed_dict)
+
+  def train_model_on_batch(self, session, x_instances, y_instances,
+                           training_ratio=0.8):
+    '''
+    Train one mini-batch.
+    '''
+    if training_ratio is not None:
+      training_cutoff = int(training_ratio * len(x_instances))
+
+      training_x_instances = x_instances[:training_cutoff]
+      training_y_instances = y_instances[:training_cutoff]
+
+      validation_x_instances = x_instances[training_cutoff:]
+      validation_y_instances = y_instances[training_cutoff:]
+    else:
+      training_x_instances = x_instances
+      training_y_instances = y_instances
+
+    self.initialize_training_set(session,
+                                 training_x_instances,
+                                 training_y_instances)
+    # Next stuff goes here.
+    session.run(self.training_step)
+
   def train_model(self, session, x_instances, y_instances, training_ratio=.8,
                   validation_frequency=1000, validation_threshold=5,
                   validation_patience=50):
@@ -150,6 +177,7 @@ class Model:
           else:
             heapq.heappushpop(best_n, report)
 
+          # print(type(report in best_n))
           if report in best_n:
             patience = 0
           else:
@@ -206,37 +234,9 @@ class LinRegModel(Model): # a sample model defining a linear regression
     self.predicted_y = self.x @ self.W + self.b
 
   def define_train(self):
-    self.optimizer = tf.train.AdamOptimizer(.00007, epsilon=.0001)
+    self.optimizer = tf.train.AdamOptimizer(.00007, epsilon=.00001)
     self.training_step = self.optimizer.minimize(self.loss)
 
-
-def train_model(model_class, x_instances, y_instances, init_state=None):
-  '''Instantiates and trains model_class on x_instances and y_instances.
-  Returns the trained state of the model (as a list of variables' values).'''
-
-  x_dim = x_instances.shape[1] # original; but later x_instances is expected to
-  y_dim = y_instances.shape[1] # be a normal list?
-  # x_dim = 28*28
-  # y_dim = 62
-
-  '''
-  https://stackoverflow.com/questions/48163685/attempting-to-use-uninitialized-value-inceptionv3-mixed-6d-branch-3-conv2d-0b-1x
-  '''
-  with tf.Graph().as_default():
-    model = model_class(x_dim, y_dim)
-
-    with tf.Session() as sess:
-      model.initialize_variables(sess)
-
-      if not init_state is None: model.set_state(sess, init_state)
-
-      # here {x|y}_instances is expected to be a list (len() is taken in
-      # model.train_model)
-      model.train_model(sess, x_instances, y_instances)
-
-      state = model.get_state(sess)
-
-  return state
 
 def test_model(model_class, state, x_instances, y_instances):
   '''Instantiates model_class with state and tests it on x_instances and
@@ -280,3 +280,27 @@ def make_predictions(model_class, state, x_instances, y_dim):
       predicted_y = model.apply_model(sess, x_instances)
 
   return predicted_y
+
+def train_model(model_class, x_instances, y_instances, init_state=None):
+  '''Instantiates and trains model_class on x_instances and y_instances.
+  Returns the trained state of the model (as a list of variables' values).'''
+
+  x_dim = x_instances.shape[1] # original; but later x_instances is expected to
+  y_dim = y_instances.shape[1] # be a normal list?
+  # x_dim = 28*28
+  # y_dim = 62
+  with tf.Graph().as_default():
+    model = model_class(x_dim, y_dim)
+
+    with tf.Session() as sess:
+      model.initialize_variables(sess)
+
+      if not init_state is None: model.set_state(sess, init_state)
+
+      model.train_model(sess, x_instances, y_instances)
+      # model.train_model_on_batch(sess, x_instances, y_instances,
+      #                            training_ratio=None)
+
+      state = model.get_state(sess)
+
+  return state

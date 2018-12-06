@@ -110,7 +110,7 @@ class CNN(Atf.Model):
 
   def define_train(self):
     '''Defines self.optimizer and self.training_step based on self.loss.'''
-    self.optimizer = tf.train.AdamOptimizer()
+    self.optimizer = tf.train.AdamOptimizer(0.00007, epsilon=0.0001)
     self.training_step = self.optimizer.minimize(self.loss)
 
 # Tensorflow/CUDA's GPU Session makes the terminal output all crazy :)
@@ -121,20 +121,31 @@ if __name__ == '__main__':
   t0 = time()
 
   try:
-    d = Data()
-    visible_print('Data constructed.')
-    b_s = 4000
+    d = Data(); visible_print('Data constructed.')
     st = None
-    n_batches = int(np.ceil(len(d.labels())/b_s))
+    n_batches = 1
+    inverse_ratio_of_dataset_to_use = 200
+
+    labels_r, imgs_r = d.labels(), d.images()
+    labels_r = np.array([expected(l) for l in labels_r])
+    imgs_r = np.array(imgs_r)
 
     visible_print('Going to train {} batches. Here we go!'.format(n_batches))
     for b in range(n_batches):
       visible_print('Training batch #{}'.format(b))
-      first = b_s *  b
-      last  = b_s * (b+1)
-      imgs, labels = np.array(d.images()[first:last]), d.labels()[first:last]
+
+      first = 0
+      last  = int(np.ceil(len(d.labels())/inverse_ratio_of_dataset_to_use))
+
+      imgs, labels = np.array(imgs_r[first:last]), labels_r[first:last]
       labels = np.array([expected(l) for l in labels])
+
       st = Atf.train_model(CNN, imgs, labels, init_state=st)
+
+      if (b-1)%10 == 0:
+        pass
+        # visible_print(Atf.test_model(CNN, st, imgs_t, labels_t))
+
   except Exception as e:
     raise e
 
