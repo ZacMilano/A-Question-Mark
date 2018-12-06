@@ -1,16 +1,17 @@
-import tensorflow as tf
-import ZacTF as ztf
-from ZacTF import vprint
-from Data import *
 from time import time
-from helpers import normalize_tf, expected
+
 import numpy as np
+import tensorflow as tf
+
+from Data import Data
+from helpers import normalize_tf
+from ZacTF import vprint
+import ZacTF as ztf
 
 vars_to_store = []
 WIDTH = HEIGHT = 28
 N_PX = WIDTH * HEIGHT
 K = 62 # Number of classes
-D = 1000 # Number of 'feature' neurons
 LR = 0.0005 # Learning rate
 
 error = ztf.x_entropy
@@ -20,9 +21,11 @@ x_n = normalize_tf(X)
 x_as_image = tf.reshape(x_n, [-1, HEIGHT, WIDTH, 1])
 
 # 1ST CONVOLUTIONAL LAYER + POOLING {{{
+F = 40
+S = 5
 conv_0 = ztf.convolutional_layer(inputs=x_as_image,
-                                 filters=40,
-                                 kernel_size=(5,5),
+                                 filters=F,
+                                 kernel_size=(S,S),
                                  name='conv_0')
 
 pool_width = 2
@@ -35,9 +38,11 @@ pool_0 = ztf.pooling_layer(inputs=conv_0,
 # }}}
 
 # 2ND CONVOLUTIONAL LAYER + POOLING {{{
+F = 50
+S = 5
 conv_1 = ztf.convolutional_layer(inputs=pool_0,
-                                 filters=40,
-                                 kernel_size=(5,5),
+                                 filters=F,
+                                 kernel_size=(S,S),
                                  name='conv_1')
 
 pool_width = 2
@@ -56,6 +61,7 @@ convolved_flattened = tf.reshape(pool_1, [-1, flat_len])
 
 
 # Make feature neuron layer
+D = 1050 # Number of 'feature' neurons
 features = ztf.fully_connected_layer(inputs=convolved_flattened, output_size=D,
                                      activation=tf.nn.relu, name='W_b_features')
 

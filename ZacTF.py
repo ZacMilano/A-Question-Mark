@@ -52,5 +52,7 @@ def x_entropy(actual, predicted):
   return tf.reduce_mean(x_ent, name='x_entropy_loss')
 
 # Tensorflow/CUDA's GPU Session makes the terminal output all crazy :)
+# vprint means 'visible print', i.e. make the printed text stand out from the
+# other printed text
 def vprint(s):
   print('-'*80 + '\n' + s + '\n' + '-'*80)
