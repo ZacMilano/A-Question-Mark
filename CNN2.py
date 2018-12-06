@@ -81,14 +81,23 @@ def batch(b, batch_size, imgs, labels):
   return batch_imgs, batch_labels
 
 def evaluate_model(session=None, test_imgs=None, test_labels=None):
-  feed_dict = {
-    X             : test_imgs,
-    desired_class : test_labels
-  }
-  result = session.run([accuracy, loss], feed_dict=feed_dict)
-  acc    = result[0]
-  loss_  = result[1]
-  print('Test accuracy: {0:.2f}\nLoss:          {}'.format(acc*100, loss_))
+  batch_size     = 200 # Makes the computation spatially stable on my computer
+  n_test_batches = int(np.ceil(len(test_labels)/batch_size))
+  accs, losses   = [], []
+
+  for b in range(n_test_batches):
+    batch_test_imgs, batch_test_labels = batch(b, batch_size, test_imgs,
+                                               test_labels)
+    feed_dict = {
+      X             : batch_test_imgs,
+      desired_class : batch_test_labels
+    }
+    result = session.run([accuracy, loss], feed_dict=feed_dict)
+    accs.append(  result[0])
+    losses.append(result[1])
+  acc   = sum(accs)  /len(accs)
+  loss_ = sum(losses)/len(losses)
+  print('Test accuracy: {0:.2f}%\nLoss:          {1}'.format(acc*100, loss_))
   return acc, loss_
 
 def train(session=None, batch_size=None, imgs=None, labels=None,
