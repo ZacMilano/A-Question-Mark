@@ -14,7 +14,7 @@ def fully_connected_layer(inputs=None, output_size=None, activation=None,
   )
 
 def convolutional_layer(inputs=None, filters=None, kernel_size=None,
-                        padding='VALID', activation=tf.nn.relu, use_bias=True,
+                        padding='SAME', activation=tf.nn.relu, use_bias=True,
                         bias_initializer=tf.zeros_initializer(), trainable=True,
                         name=None):
   return tf.layers.conv2d(

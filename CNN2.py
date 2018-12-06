@@ -26,7 +26,7 @@ conv_0 = ztf.convolutional_layer(inputs=x_as_image,
                                  name='conv_0')
 
 pool_width = 2
-stride     = 1
+stride     = 2
 
 pool_0 = ztf.pooling_layer(inputs=conv_0,
                            pool_width=pool_width,
@@ -41,7 +41,7 @@ conv_1 = ztf.convolutional_layer(inputs=pool_0,
                                  name='conv_1')
 
 pool_width = 2
-stride     = 1
+stride     = 2
 
 pool_1 = ztf.pooling_layer(inputs=conv_1,
                            pool_width=pool_width,
@@ -49,10 +49,10 @@ pool_1 = ztf.pooling_layer(inputs=conv_1,
                            name='max_pool_1')
 # }}}
 
-# I'm just guessing that this is the proper size for now lol
-guess_size = 7*7*64
+s = pool_1.shape
+flat_len = s[1] * s[2] * s[3]
 # Flatten the convolved features
-convolved_flattened = tf.reshape(pool_1, [-1, guess_size])
+convolved_flattened = tf.reshape(pool_1, [-1, flat_len])
 
 
 # Make feature neuron layer
@@ -63,7 +63,7 @@ features = ztf.fully_connected_layer(inputs=convolved_flattened, output_size=D,
 Y_hat = ztf.fully_connected_layer(inputs=features, output_size=K, name='y_hat')
 predict_class = tf.argmax(Y_hat, 1)
 # Desired output
-desired_class = tf.placeholder(tf.uint8, shape=(), name='desired_class')
+desired_class = tf.placeholder(tf.uint8, shape=(None,), name='desired_class')
 Y = tf.one_hot(desired_class, K)
 
 # Value to minimize
@@ -131,5 +131,5 @@ def main(training):
 
 if __name__ == '__main__':
   yes = ('y', 'yes')
-  training = input('Are you training your model?').lower() in yes
+  training = input('Are you training your model? | ').lower() in yes
   main(training)
