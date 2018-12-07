@@ -2,12 +2,14 @@ from time import time
 
 import numpy as np
 import tensorflow as tf
+import cv2
 
 from Data import Data
 from helpers import normalize_tf
 from ZacTF import vprint
 import ZacTF as ztf
 
+# def main_definitions():
 vars_to_store = []
 WIDTH = HEIGHT = 28
 N_PX = WIDTH * HEIGHT
@@ -106,6 +108,10 @@ def evaluate_model(session=None, test_imgs=None, test_labels=None):
   print('Test accuracy: {0:.2f}%\nLoss:          {1}'.format(acc*100, loss_))
   return acc, loss_
 
+def make_prediction(session=None, test_img=None):
+  y_ = session.run(predict_class, feed_dict = {X : [test_img]})
+  return int(y_[0])
+
 def train(session=None, batch_size=None, imgs=None, labels=None,
           test_imgs=None, test_labels=None):
   B = int(np.ceil(len(labels)/batch_size))
@@ -123,7 +129,15 @@ def store_var(v):
   # Perhaps instead later find vars with tf.GraphKeys.TRAINABLE_VARIABLES?
   vars_to_store.append(v)
 
+def flatten(img):
+  # flatten a square image.
+  res = []
+  for row in img:
+    res += row
+  return res
+
 def main(training):
+  # main_definitions()
   if training:
     d, d_t = Data.train_and_pseudo_test()
 
@@ -143,8 +157,18 @@ def main(training):
     # TRAIN THAT BAD BOI
     train(session=sess, batch_size=500, imgs=imgs, labels=labels,
           test_imgs=test_imgs, test_labels=test_labels)
+    test = input('Want to test it with an image?  ')
+    yes = ('y', 'yes')
+    no = ('n', 'no')
+    while test.lower() not in no:
+      img = cv2.imread("../character.png", 0)
+      img = img.tolist()
+      img = flatten(img)
+      y_ = make_prediction(session=sess, test_img=img)
+      print('Hmm... I think that character is {}.'.format(d.label_display(y_)))
+      test = input('Want to try again?  ')
 
 if __name__ == '__main__':
   yes = ('y', 'yes')
-  training = input('Are you training your model? | ').lower() in yes
+  training = input('Are you training your model?  ').lower() in yes
   main(training)
