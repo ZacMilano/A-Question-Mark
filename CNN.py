@@ -1,4 +1,5 @@
 from time import time
+import os
 
 import numpy as np
 import tensorflow as tf
@@ -76,8 +77,11 @@ Y = tf.one_hot(desired_class, K)
 
 # Value to minimize
 loss = error(Y, Y_hat)
-correct_classification = tf.equal(tf.cast(desired_class, tf.int64), predict_class)
+correct_classification = tf.equal(tf.cast(desired_class, tf.int64),
+                                  predict_class)
 accuracy = tf.reduce_mean(tf.cast(correct_classification, tf.float32))
+tf.summary.histogram("loss", loss)
+tf.summary.histogram("accuracy", accuracy)
 
 optimizer  = tf.train.AdamOptimizer(learning_rate=LR, epsilon=0.001)
 train_step = optimizer.minimize(loss)
@@ -108,14 +112,18 @@ def evaluate_model(session=None, test_imgs=None, test_labels=None):
   print('Test accuracy: {0:.2f}%\nLoss:          {1}'.format(acc*100, loss_))
   return acc, loss_
 
-def make_prediction(session=None, test_img=None):
-  y_ = session.run(predict_class, feed_dict = {X : [test_img]})
+def make_prediction(session=None, test_img_path=None):
+  img = cv2.imread(test_img_path, 0)
+  img = img.tolist()
+  img = flatten(img)
+  y_ = session.run(predict_class, feed_dict = {X : [img]})
   return int(y_[0])
 
 def train(session=None, batch_size=None, imgs=None, labels=None,
-          test_imgs=None, test_labels=None):
+          test_imgs=None, test_labels=None, writer=None):
   B = int(np.ceil(len(labels)/batch_size))
   for b in range(B):
+    merged_summaries = tf.summary.merge_all()
     if b%100 == 0: evaluate_model(session=session, test_imgs=test_imgs,
                                   test_labels=test_labels)
     batch_imgs, batch_labels = batch(b, batch_size, imgs, labels)
@@ -123,7 +131,9 @@ def train(session=None, batch_size=None, imgs=None, labels=None,
       X             : batch_imgs,
       desired_class : batch_labels
     }
-    session.run(train_step, feed_dict=feed_dict)
+    summary, _ = session.run([merged_summaries, train_step],
+                             feed_dict=feed_dict)
+    writer.add_summary(summary, b)
 
 def store_var(v):
   # Perhaps instead later find vars with tf.GraphKeys.TRAINABLE_VARIABLES?
@@ -138,6 +148,8 @@ def flatten(img):
 
 def main(training):
   # main_definitions()
+  t0 = time()
+
   if training:
     d, d_t = Data.train_and_pseudo_test()
 
@@ -154,17 +166,22 @@ def main(training):
   with tf.Session() as sess: # Context manager automatically closes it!
     vprint('Initializing global variables...')
     ztf.init_vars(sess) # just runs tf.global_variables_initializer()
+
+    training_writer = tf.summary.FileWriter('../logs/train', sess.graph)
+
     # TRAIN THAT BAD BOI
     train(session=sess, batch_size=500, imgs=imgs, labels=labels,
-          test_imgs=test_imgs, test_labels=test_labels)
+          test_imgs=test_imgs, test_labels=test_labels, writer=training_writer)
+
+    dt = time() - t0
+    mins, secs = int(dt//60), int(dt%60)
+    vprint('Training completed in {:0>2d}:{:0>2d}'.format(mins, secs))
+
     test = input('Want to test it with an image?  ')
-    yes = ('y', 'yes')
-    no = ('n', 'no')
+    yes, no = ('y', 'yes'), ('n', 'no')
     while test.lower() not in no:
-      img = cv2.imread("../character.png", 0)
-      img = img.tolist()
-      img = flatten(img)
-      y_ = make_prediction(session=sess, test_img=img)
+      y_ = make_prediction(session=sess, test_img_path='../character.png')
+      os.system('clear')
       print('Hmm... I think that character is {}.'.format(d.label_display(y_)))
       test = input('Want to try again?  ')
 
@@ -172,3 +189,5 @@ if __name__ == '__main__':
   yes = ('y', 'yes')
   training = input('Are you training your model?  ').lower() in yes
   main(training)
+  if not training:
+    print('L I A R')
