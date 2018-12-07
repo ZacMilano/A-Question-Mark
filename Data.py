@@ -62,13 +62,13 @@ class Data:
     Return type is List<Integer> where each integer is in the range [0,62).'''
     return self._labels
 
-  def label_display(self, class_label):
+  def label_display(class_label, data_directory='../data_samples'):
     '''
     Return the actual character that was written.
     Return type: String (or None, if no matching class is found)
 
     Parameter:
-      self : The instance of Data itself
+      data_directory : The location of the mapping file
       class_label : Integer in range [0,62)
 
     Data.labels() returns a list of integers, in the range [0,62). [0,9] is
@@ -78,10 +78,9 @@ class Data:
     the desired label. Included with the dataset was a .txt file with a proper
     mapping.
 
-    It's not necessary to have this as an instance method, but that's ok.
+    This is now a static method.
     '''
-    with open(self.data_directory +
-              '/emnist-byclass-mapping.txt') as mapping_file:
+    with open(data_directory + '/emnist-byclass-mapping.txt') as mapping_file:
       # Each line is of this format:
       # "{class #} {ASCII code mapping to character's name}"
       for line in mapping_file:

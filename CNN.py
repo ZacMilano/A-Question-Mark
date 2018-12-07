@@ -3,6 +3,7 @@ import os
 
 import numpy as np
 import tensorflow as tf
+from tensorflow.python.saved_model import tag_constants
 import cv2
 
 from Data import Data
@@ -146,48 +147,62 @@ def flatten(img):
     res += row
   return res
 
-def main(training):
+def main(training, final=False):
   # main_definitions()
   t0 = time()
 
   if training:
-    d, d_t = Data.train_and_pseudo_test()
+    if final: d, d_t = Data(), Data(is_test_data=True)
+    else:     d, d_t = Data.train_and_pseudo_test()
+    imgs,      labels      = d.images(),   d.labels()
+    test_imgs, test_labels = d_t.images(), d_t.labels()
+    vprint('Data loaded.')
+  else:
+    pass
+  if not final:
 
   else:
-    # In this case you're actually training but with more data lol
-    d, d_t = Data(), Data(is_test_data=True)
+    if training: # Use official partitions
+      vprint('Data loaded.')
+    else:
+      vprint('Not loading data. Not training.')
 
-  vprint('Data loaded.')
-
-  imgs,      labels      = d.images(),   d.labels()
-  test_imgs, test_labels = d_t.images(), d_t.labels()
 
   vprint('Opening tf session...')
   with tf.Session() as sess: # Context manager automatically closes it!
     vprint('Initializing global variables...')
     ztf.init_vars(sess) # just runs tf.global_variables_initializer()
 
-    training_writer = tf.summary.FileWriter('../logs/train', sess.graph)
+    if training:
+      training_writer = tf.summary.FileWriter('../logs/train', sess.graph)
 
-    # TRAIN THAT BAD BOI
-    train(session=sess, batch_size=500, imgs=imgs, labels=labels,
-          test_imgs=test_imgs, test_labels=test_labels, writer=training_writer)
+      # TRAIN THAT BAD BOI
+      train(session=sess, batch_size=500, imgs=imgs, labels=labels,
+            test_imgs=test_imgs, test_labels=test_labels,
+            writer=training_writer)
 
-    dt = time() - t0
-    mins, secs = int(dt//60), int(dt%60)
-    vprint('Training completed in {:0>2d}:{:0>2d}'.format(mins, secs))
+      dt = time() - t0
+      mins, secs = int(dt//60), int(dt%60)
+      vprint('Training completed in {:0>2d}:{:0>2d}'.format(mins, secs))
+
+    else:
+      # TODO: Load a saved model
+      pass
 
     test = input('Want to test it with an image?  ')
     yes, no = ('y', 'yes'), ('n', 'no')
     while test.lower() not in no:
       y_ = make_prediction(session=sess, test_img_path='../character.png')
-      os.system('clear')
-      print('Hmm... I think that character is {}.'.format(d.label_display(y_)))
+      os.system('clear') # Seems to not be working (want to clear screen)
+      vprint(('-'*33 + '||  {}  ||' + '-'*34).format(Data.label_display(y_)))
       test = input('Want to try again?  ')
+    if training:
+      # TODO: Save model
+      pass
 
 if __name__ == '__main__':
   yes = ('y', 'yes')
-  training = input('Are you training your model?  ').lower() in yes
-  main(training)
+  training = input('Are you newly training the model?  ').lower() in yes
   if not training:
-    print('L I A R')
+    vprint('L I A R')
+  main(training, final=False)

@@ -55,4 +55,7 @@ def x_entropy(actual, predicted):
 # vprint means 'visible print', i.e. make the printed text stand out from the
 # other printed text
 def vprint(s):
-  print('-'*80 + '\n' + s + '\n' + '-'*80)
+  num_spaces = 80 - 2 - len(s) - 2
+  print('+' + '-'*78 + '+' + '\n' +
+        '| ' + s + ' '*num_spaces + ' |'
+        + '\n' + '+' + '-'*78 + '+')
