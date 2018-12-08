@@ -151,6 +151,7 @@ def main(training, final=False):
   # main_definitions()
   t0 = time()
 
+  # Load data if training
   if training:
     if final: d, d_t = Data(), Data(is_test_data=True)
     else:     d, d_t = Data.train_and_pseudo_test()
@@ -159,19 +160,13 @@ def main(training, final=False):
     vprint('Data loaded.')
   else:
     pass
-  if not final:
-
-  else:
-    if training: # Use official partitions
-      vprint('Data loaded.')
-    else:
-      vprint('Not loading data. Not training.')
-
+    vprint('Not loading data. Not training.')
 
   vprint('Opening tf session...')
   with tf.Session() as sess: # Context manager automatically closes it!
     vprint('Initializing global variables...')
     ztf.init_vars(sess) # just runs tf.global_variables_initializer()
+    save_dir = '../saved_cnn_files'
 
     if training:
       training_writer = tf.summary.FileWriter('../logs/train', sess.graph)
@@ -186,8 +181,13 @@ def main(training, final=False):
       vprint('Training completed in {:0>2d}:{:0>2d}'.format(mins, secs))
 
     else:
-      # TODO: Load a saved model
-      pass
+      # This either doesn't properly load a trained model or the saving
+      # functionality doesn't save the trained variables
+      tf.saved_model.loader.load(
+        sess,
+        [tag_constants.SERVING],
+        save_dir
+      )
 
     test = input('Want to test it with an image?  ')
     yes, no = ('y', 'yes'), ('n', 'no')
@@ -197,8 +197,10 @@ def main(training, final=False):
       vprint(('-'*33 + '||  {}  ||' + '-'*34).format(Data.label_display(y_)))
       test = input('Want to try again?  ')
     if training:
-      # TODO: Save model
-      pass
+      # Save model
+      # No idea if this will work
+      inputs, outputs = {'X': X}, {'desired_class': desired_class}
+      tf.saved_model.simple_save(sess, save_dir, inputs, outputs)
 
 if __name__ == '__main__':
   yes = ('y', 'yes')
