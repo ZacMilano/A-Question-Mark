@@ -1,0 +1,25 @@
+Convolution
+	go over image with matrix filters for feature detection
+	Depth
+		number of filters used
+	Stride
+		number of pixels we move the filter over on each iteration over the image
+	Padding
+		put zeros around image
+		Narrow convolution
+			don't use padding
+		Wide convolution
+			use padding
+Non-Linearity function
+	map this function over the matrix after each convolution step
+Pooling
+	reduces size of the matrix but retains important info
+	ex: avg, max, sum
+	more manageable / reduce overfitting
+Fully connected layer
+	every neuron in previous layer is connected to every neuron in the next layer
+	for classification purposes
+	combines all of the stuff we have learned via convolution and pooling, might be better!
+Backpropagation / Training
+	minimize entropy using a random starting filter
+
