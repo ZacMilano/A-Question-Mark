@@ -177,7 +177,7 @@ def main(training, final=False):
     ztf.init_vars(sess) # just runs tf.global_variables_initializer()
 
     print(tf.global_variables())
-    save_dir = '../saved_cnn_files/'
+    save_dir = './saved_cnn_files/'
     save_name = save_dir + 'cnn_data'
 
     if training:
