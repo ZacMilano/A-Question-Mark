@@ -83,6 +83,11 @@ correct_classification = tf.equal(tf.cast(desired_class, tf.int64),
 accuracy = tf.reduce_mean(tf.cast(correct_classification, tf.float32))
 tf.summary.histogram("loss", loss)
 tf.summary.histogram("accuracy", accuracy)
+tf.summary.histogram('conv_0', conv_0)
+tf.summary.histogram('max_pool_0', pool_0)
+tf.summary.histogram('max_pool_1', pool_1)
+tf.summary.histogram('W_b_features', features)
+tf.summary.histogram('y_hat', Y_hat)
 
 optimizer  = tf.train.AdamOptimizer(learning_rate=LR, epsilon=0.001)
 train_step = optimizer.minimize(loss)
@@ -215,4 +220,4 @@ def main(training, final=False):
 if __name__ == '__main__':
   yes = ('y', 'yes')
   training = input('Are you newly training the model?  ').lower() in yes
-  main(training, final=False)
+  main(training, final=True)
