@@ -24,5 +24,6 @@ if __name__ == '__main__':
   print(len(dataset.images()))
   print(len(dataset.labels()))
   avgs = averages(dataset)
-  i = random.randint(0,61)
+  # i = random.randint(0,61)
+  i = 61
   Draw.display_img(avgs[i])

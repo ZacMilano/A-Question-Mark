@@ -83,6 +83,11 @@ correct_classification = tf.equal(tf.cast(desired_class, tf.int64),
 accuracy = tf.reduce_mean(tf.cast(correct_classification, tf.float32))
 tf.summary.histogram("loss", loss)
 tf.summary.histogram("accuracy", accuracy)
+tf.summary.histogram('conv_0', conv_0)
+tf.summary.histogram('max_pool_0', pool_0)
+tf.summary.histogram('max_pool_1', pool_1)
+tf.summary.histogram('W_b_features', features)
+tf.summary.histogram('y_hat', Y_hat)
 
 optimizer  = tf.train.AdamOptimizer(learning_rate=LR, epsilon=0.001)
 train_step = optimizer.minimize(loss)
@@ -136,9 +141,11 @@ def train(session=None, batch_size=None, imgs=None, labels=None,
                              feed_dict=feed_dict)
     writer.add_summary(summary, b)
 
-def store_var(v):
+def store_vars():
   # Perhaps instead later find vars with tf.GraphKeys.TRAINABLE_VARIABLES?
-  vars_to_store.append(v)
+  g = tf.get_default_graph()
+  conv0_vars = graph.get_tensor_by_name('conv_0')
+  vars_to_store.append()
 
 def flatten(img):
   # flatten a square image.
@@ -164,9 +171,13 @@ def main(training, final=False):
 
   vprint('Opening tf session...')
   with tf.Session() as sess: # Context manager automatically closes it!
+    # print(tf.get_default_graph().get_tensor_by_name('conv_0/kernel:0'))
+    print(conv_0)
     vprint('Initializing global variables...')
     ztf.init_vars(sess) # just runs tf.global_variables_initializer()
-    save_dir = '../saved_cnn_files'
+
+    save_dir = './saved_cnn_files/'
+    save_name = save_dir + 'cnn_data'
 
     if training:
       training_writer = tf.summary.FileWriter('../logs/train', sess.graph)
@@ -181,13 +192,15 @@ def main(training, final=False):
       vprint('Training completed in {:0>2d}:{:0>2d}'.format(mins, secs))
 
     else:
-      # This either doesn't properly load a trained model or the saving
-      # functionality doesn't save the trained variables
-      tf.saved_model.loader.load(
-        sess,
-        [tag_constants.SERVING],
-        save_dir
-      )
+      # tf.saved_model.loader.load(
+      #   sess,
+      #   [tag_constants.SERVING],
+      #   save_dir
+      # )
+      reuse_these_vars = tf.get_collection(tf.GraphKeys.GLOBAL_VARIABLES)
+      d = dict([(var.op.name, var) for var in reuse_these_vars])
+      load_saver = tf.train.Saver(d)
+      load_saver.restore(sess, save_name + '.ckpt')
 
     test = input('Want to test it with an image?  ')
     yes, no = ('y', 'yes'), ('n', 'no')
@@ -198,13 +211,12 @@ def main(training, final=False):
       test = input('Want to try again?  ')
     if training:
       # Save model
-      # No idea if this will work
-      inputs, outputs = {'X': X}, {'desired_class': desired_class}
-      tf.saved_model.simple_save(sess, save_dir, inputs, outputs)
+      # inputs, outputs = {'X': X}, {'desired_class': desired_class}
+      # tf.saved_model.simple_save(sess, save_dir, inputs, outputs)
+      saver = tf.train.Saver()
+      saver.save(sess, save_name + '.ckpt')
 
 if __name__ == '__main__':
   yes = ('y', 'yes')
   training = input('Are you newly training the model?  ').lower() in yes
-  if not training:
-    vprint('L I A R')
-  main(training, final=False)
+  main(training, final=True)

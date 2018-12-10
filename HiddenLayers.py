@@ -37,7 +37,7 @@ def pool(img, width, height):
 
 	"""
 	res = []
-	
+
 	for y in range(0, round(len(img) / height)):
 		res.append([None] * round(len(img[y]) / width))
 
@@ -76,7 +76,7 @@ def get_max_matrix(m):
 		for elem in row:
 			res = max(res, elem)
 	return res
-	
+
 
 def equal_size_matrix_dot(m1, m2):
 	"""
